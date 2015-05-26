@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+SUMMARY: 
+- Structure: NML2 SNI Text 
+- Based On: NML2 v2.10
+
+AUTHOR: thomsonreuters.com
+-->
+<!-- ========================================================= -->
+<newsMessage xmlns="http://iptc.org/std/nar/2006-10-01/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rtr="http://www.reuters.com/ns/2003/08/content" xmlns:x="http://www.w3.org/1999/xhtml">
+    <header>
+        <sent>2015-04-17T04:45:36.000Z</sent>
+        <sender>reuters.com</sender>
+        <transmitId>tag:reuters.com,0000:newsml_L4N0XE1TC:698056532</transmitId>
+        <priority>3</priority>
+        <destination>G</destination>
+        <destination>RBN</destination>
+        <destination>Z</destination>
+        <destination>AFA</destination>
+        <destination>CSA</destination>
+        <destination>LBY</destination>
+        <destination>RWSA</destination>
+        <destination>RWS</destination>
+        <destination>REULB</destination>
+        <destination>GNS</destination>
+        <destination>RAST</destination>
+        <destination>J</destination>
+        <destination>RNP</destination>
+        <destination>DNP</destination>
+        <destination>PGE</destination>
+        <destination>SXNA</destination>
+        <channel>TXT</channel>
+    </header>
+    <itemSet>
+        <newsItem guid="tag:reuters.com,0000:newsml_L4N0XE1TC" version="698056532" standard="NewsML-G2" standardversion="2.10" conformance="power" xml:lang="en">
+            <catalogRef href="http://www.iptc.org/std/catalog/catalog.IPTC-G2-Standards_3.xml" />
+            <rightsInfo>
+                <copyrightHolder literal="Thomson Reuters" />
+                <copyrightNotice xml:lang="en">(c) Copyright Thomson Reuters 2015. Click For Restrictions - http://about.reuters.com/fulllegal.asp</copyrightNotice>
+            </rightsInfo>
+            <itemMeta>
+                <itemClass qcode="icls:text" rtr:msgType="S" />
+                <provider literal="reuters.com" />
+                <versionCreated>2015-04-17T04:45:36.000Z</versionCreated>
+                <firstCreated>2015-04-17T04:45:36.000Z</firstCreated>
+                <pubStatus qcode="stat:usable" />
+                <role qcode="itemRole:N" />
+                <fileName>2015-04-17T044536Z_698056532_L4N0XE1TC_RTRMADT_0_CHINA-JAPAN.XML</fileName>
+                <generator versioninfo="00.00.01">G3:IIM:FH</generator>
+                <profile versioninfo="00.00.01">SNI-Text</profile>
+                <service qcode="svc:RTR_TNS" />
+                <memberOf creator="trRule:rule1" modified="2015-04-17T04:45:39.000Z" literal="Business">
+                    <name>Business</name>
+                </memberOf>
+                <memberOf creator="trRule:rule11" modified="2015-04-17T04:45:39.000Z" literal="Politics">
+                    <name>Politics</name>
+                </memberOf>
+                <memberOf creator="trRule:rule22" modified="2015-04-17T04:45:39.000Z" literal="World-Asia">
+                    <name>Asia</name>
+                </memberOf>
+                <memberOf creator="trRule:rule29" modified="2015-04-17T04:45:39.000Z" literal="World-US">
+                    <name>US</name>
+                </memberOf>
+                <signal qcode="edStat:N" />
+                <signal qcode="prodId:TXT" />
+                <signal qcode="pmt:text" />
+                <rtr:versionedId guid="tag:reuters.com,0000:newsml_L4N0XE1TC:698056532" />
+            </itemMeta>
+            <contentMeta>
+                <urgency>3</urgency>
+                <infoSource role="cRole:origProv" literal="Reuters" />
+                <creator literal="Reuters" />
+                <altId type="idType:USN" rtr:isOriginal="1">L4N0XE1TC</altId>
+                <altId type="idType:OTR">L4N0XE1TC</altId>
+                <language tag="en" />
+                <subject qcode="MCC:OVR" />
+                <subject qcode="N2:EMRG" />
+                <subject qcode="N2:US" />
+                <subject qcode="N2:CN" />
+                <subject qcode="N2:ASIA" />
+                <subject qcode="N2:DEF" />
+                <subject qcode="N2:DIP" />
+                <subject qcode="N2:SECUR" />
+                <subject qcode="N2:POL" />
+                <subject qcode="N2:JP" />
+                <subject qcode="N2:AMERS" />
+                <subject qcode="N2:GEN" />
+                <subject qcode="N2:CWP" />
+                <subject qcode="subj:11001000" />
+                <subject qcode="subj:11002000" />
+                <subject qcode="subj:11001002" />
+                <subject qcode="subj:11000000" />
+                <subject qcode="subj:10000000" />
+                <subject qcode="subj:16009000" />
+                <subject qcode="N2:USA" />
+                <subject qcode="N2:JPN" />
+                <subject qcode="N2:CHN" />
+                <subject qcode="N2:PIA" />
+                <subject qcode="a1312cat:i" />
+                <subject qcode="MCCL:OVR" />
+                <slugline separator="-">CHINA-JAPAN/</slugline>
+                <headline>China complains Japanese air, sea surveillance raises safety risks</headline>
+                <creditline>Reuters</creditline>
+                <description role="descRole:caption">CHINA-JAPAN/:China complains Japanese air, sea surveillance raises safety risks</description>
+            </contentMeta>
+            <contentSet>
+                <inlineXML contenttype="application/xhtml+html" wordcount="223">
+                    <html xmlns="http://www.w3.org/1999/xhtml">
+                        <head>
+                            <title />
+                        </head>
+                        <body>
+                            <p>BEIJING, April 17 (Reuters) - China's Defence Ministry
+                                complained on Friday that Japanese surveillance activities
+                                threatened the safety of Chinese ships and aircraft, raising the
+                                issue after Japan said earlier this week that its jet fighter
+                                scrambles had hit levels unseen since the Cold War.</p>
+                            <p>Japan's air force said the increased number of scrambles
+                                were in response to Russian bombers probing its northern skies
+                                and Chinese combat aircraft intruding into its southern air
+                                space.</p>
+                            <p>China's Defence Ministry, in a statement faxed to Reuters,
+                                said that Chinese air force activities accorded with both
+                                international law and norms.</p>
+                            <p>"In recent years, Japanese ships and aircraft have often
+                                followed and monitored for lengthy periods and at close
+                                distances Chinese ships and aircraft, threatening the safety of
+                                the Chinese side," it said.</p>
+                            <p>"This is the cause of the safety issue in the seas and air
+                                between China and Japan," the ministry added.</p>
+                            <p>"China has a grip on the tracking and surveillance by
+                                Japanese ships and aircraft, and takes necessary steps to deal
+                                with it," it said, without elaborating.</p>
+                            <p>Japan says the Chinese fighter incursions are concentrated
+                                in the East China Sea, close to uninhabited islets claimed by
+                                Japan and China.</p>
+                            <p>Coastguard ships and fighter aircraft from both sides
+                                routinely face off around the islands, fuelling fears that an
+                                accident could spark a clash.
+
+                                (Reporting by Ben Blanchard)</p>
+                        </body>
+                    </html>
+                </inlineXML>
+            </contentSet>
+        </newsItem>
+    </itemSet>
+</newsMessage>
+

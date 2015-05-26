@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<newsMessage xmlns="http://iptc.org/std/nar/2006-10-01/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:n360txt="urn:news360:N360Text:xmlns" xmlns:kap="http://www.kathpress.com/redtech/mdns/2009-01-01/">
+    <header>
+        <sent>2015-04-16T14:21:41+02:00</sent>
+        <sender>kathpress</sender>
+        <priority>3</priority>
+        <destination>KAP</destination>
+        <channel>Basisdienst: Agentur-Dienst</channel>
+    </header>
+    <itemSet>
+        <newsItem standard="NewsML-G2" standardversion="2.15" conformance="power" xml:lang="de" guid="urn:newsml:kathpress.at:20150416:SWNI1254262" version="1">
+            <catalogRef href="http://www.iptc.org/std/catalog/catalog.IPTC-G2-Standards_21.xml">
+                <title xml:lang="de">Katalog der NewsCodes Schemes der IPTC</title>
+            </catalogRef>
+            <catalogRef href="http://www.kathpress.com/redtech/catalog.KAP-G2schemes_2.xml">
+                <title xml:lang="de">Katalog der Metadaten Schemes = Feste Vokabulare der Kathpress</title>
+            </catalogRef>
+            <catalogRef href="http://www.apa-it.at/newsml_g2/apa_it_catalog_1.xml">
+                <title xml:lang="de">Katalog der Metadaten Schemes = Feste Vokabulare der Austria Presse Agentur APA</title>
+            </catalogRef>
+            <rightsInfo>
+                <accountable qcode="redma:PWU">
+                    <name>Chefredakteur Dr. Paul Wuthe</name>
+                </accountable>
+                <copyrightHolder literal="litKap">
+                    <name>Kathpress</name>
+                    <definition>Katholische Presseagentur, Wien, Österreich</definition>
+                </copyrightHolder>
+                <copyrightNotice>Copyright 2015, Kathpress (www.kathpress.at). Alle Rechte vorbehalten</copyrightNotice>
+                <usageTerms>Nutzung nur mit einer schriftlichen Vereinbarung mit Kathpress.</usageTerms>
+                <usageTerms role="kaprex:vertriebstrg" href="http://www.kathpress.com/rechte/nutzung/std">Keine Einschränkungen bei der weiteren Verbreitung</usageTerms>
+            </rightsInfo>
+            <itemMeta>
+                <itemClass qcode="ninat:text"/>
+                <provider literal="kathpress.at">
+                    <name>Kathpress</name>
+                </provider>
+                <versionCreated>2015-04-16T14:20:00+02:00</versionCreated>
+                <pubStatus qcode="stat:usable"/>
+                <generator versioninfo="1">Siteswift NewsML-G2</generator>
+                <edNote role="aparole:closing">(ende)</edNote>
+            </itemMeta>
+            <contentMeta>
+                <urgency/>
+                <contentCreated>2015-04-16T14:20:00+02:00</contentCreated>
+                <contentModified>2015-04-16T14:20:00+02:00</contentModified>
+                <located>
+                    <name>Vatikanstadt</name>
+                </located>
+                <creator qcode="redma:FAM"/>
+                <contributor qcode="redma:JMO" role="ctbrole:ggleser"/>
+                <language tag="de">
+                    <name xml:lang="de">Deutsch</name>
+                </language>
+                <genre qcode="genreat:meld">
+                    <name xml:lang="de">Meldung</name>
+                </genre>
+                <keyword rank="1">Priester</keyword>
+                <keyword rank="2">Kandidaten</keyword>
+                <keyword rank="3">Statistik</keyword>
+                <subject type="cpnat:abstract" qcode="apadesk:CA">
+                    <name>Chronik/Ausland</name>
+                </subject>
+                <subject type="cpnat:abstract" qcode="medtop:20000698">
+                    <name>Kirche</name>
+                </subject>
+                <subject type="cpnat:abstract" qcode="medtop:20000188">
+                    <name>Personal</name>
+                </subject>
+                <subject type="cpnat:geoArea" qcode="iso3166-1a2:VA">
+                    <name>Vatikan</name>
+                </subject>
+                <slugline>Vatikan/Kirche/Personal/Priester/Kandidaten/Statistik</slugline>
+                <headline role="hlrole:main">Vatikan: Zahl der Priesteramtskandidaten weltweit rückläufig</headline>
+                <headline role="hlrole:sub">Stark rückläufig ist Zahl laut Statistik für 2013 in Tschechien (13 Prozent), Großbritannien (11,5 Prozent), Österreich (10,9 Prozent) und Polen (10 Prozent) - Zunahme weiterhin in Afrika</headline>
+                <dateline>Vatikanstadt (KAP)</dateline>
+            </contentMeta>
+            <contentSet>
+                <inlineXML contenttype="application/xhtml+xml">
+                    <html xmlns="http://www.w3.org/1999/xhtml">
+                        <head>
+                            <title>Vatikan: Zahl der Priesteramtskandidaten weltweit rückläufig</title>
+                        </head>
+                        <body>
+                            <h1>Vatikan: Zahl der Priesteramtskandidaten weltweit rückläufig</h1>
+                            <h2>Stark rückläufig ist Zahl laut Statistik für 2013 in Tschechien (13 Prozent), Großbritannien (11,5 Prozent), Österreich (10,9 Prozent) und Polen (10 Prozent) - Zunahme weiterhin in Afrika</h2>
+                            <p>Weltweit wollen immer weniger Männer katholische Priester werden. Die Zahl der Priesteramtskandidaten ging nach jüngsten vatikanischen Angaben von 2011 bis 2013 insgesamt um zwei Prozent zurück. Dies bedeute eine Trendwende gegenüber dem Wachstum der Vorjahre, teilte der Vatikan am Donnerstag mit. Besonders betroffen sind demnach vor allem einige europäische und südamerikanische Länder. Die Ausbildung zum Priester traten hier 2013 teils mehr als 10 Prozent weniger Kandidaten als zwei Jahre zuvor an. Eine Zunahme (1,5 Prozent) verzeichnete nur Afrika.</p>
+                            <p>In Europa ging die Zahl der Priesteramtskandidaten von 2011 bis 2013 nach den statistischen Angaben insgesamt um 3,6 Prozent zurück. Stark rückläufig ist sie demnach vor allem in der Tschechischen Republik (13 Prozent) sowie in Großbritannien (11,5 Prozent), Österreich (10,9 Prozent) und Polen (10 Prozent). In Deutschland sank die Zahl der Priesteramtskandidaten in diesem Zeitraum um 7,7 Prozent. Gestiegen ist das Interesse am Priesteramt laut der Mitteilung nur in Italien (0,3 Prozent), der Ukraine (4,5 Prozent) und Belgien (7,5 Prozent).</p>
+                            <p>In Südamerika nahm das Interesse am Priesteramt vor allem in Kolumbien (10,5 Prozent), Chile (11,2 Prozent) und Peru (11,2 Prozent) ab. Brasilien, dem Land mit den weltweit meisten Katholiken, verzeichnete einen Rückgang um 6,7 Prozent. Insgesamt ging die Zahl der Priesteramtskandidaten in Südamerika zwischen 2011 und 2013 um sieben Prozent zurück.</p>
+                            <p>Die Zahl der Priester hat von 2011 bis 2013 unterdessen geringfügig zugenommen. 2013 stieg ihre Zahl um 0,3 Prozent auf 415.348. Die Zahl der Katholiken weltweit blieb in diesem Zeitraum nahezu konstant und lag 2013 bei 1,254 Milliarden.</p>
+                            <p>Anlass der Veröffentlichung der Zahlen ist der bevorstehende "Welttag der geistlichne Berufe" (27. April).</p>
+                        </body>
+                    </html>
+                </inlineXML>
+            </contentSet>
+        </newsItem>
+    </itemSet>
+</newsMessage>

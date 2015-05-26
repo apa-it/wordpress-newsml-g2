@@ -1,0 +1,382 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: newsml-import\n"
+"POT-Creation-Date: 2015-05-13 14:28+0100\n"
+"PO-Revision-Date: 2015-05-13 14:33+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.7.6\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2;_ex:1,2\n"
+"X-Poedit-SearchPath-0: ..\n"
+"X-Poedit-SearchPathExcluded-0: ../docs\n"
+
+#: ../include-metadata.php:13
+msgid "Author:"
+msgstr "Autor:"
+
+#: ../include-metadata.php:31
+msgid "Categories:"
+msgstr "Kategorien:"
+
+#: ../include-metadata.php:37
+msgid "Locations:"
+msgstr "Orte:"
+
+#: ../kiosk-data.php:32
+msgid "Sorry, no posts matched your criteria."
+msgstr "Entschuldigung, es konnten keine Beiträge gefunden werden."
+
+#: ../legacy/archive-newsmlpost.php:51
+#: ../legacy/taxonomy-newsml_mediatopic.php:54
+msgid "Previous page"
+msgstr "Vorherige Seite"
+
+#: ../legacy/archive-newsmlpost.php:52
+#: ../legacy/taxonomy-newsml_mediatopic.php:55
+msgid "Next page"
+msgstr "Nächste Seite"
+
+#: ../legacy/archive-newsmlpost.php:53 ../legacy/content-newsmlpost.php:49
+#: ../legacy/taxonomy-newsml_mediatopic.php:56
+msgid "Page"
+msgstr "Seite"
+
+#: ../legacy/content-newsmlpost.php:39
+#, php-format
+msgid "Continue reading %s"
+msgstr "%s weiterlesen"
+
+#: ../legacy/content-newsmlpost.php:45
+msgid "Pages:"
+msgstr "Seiten: "
+
+#: ../legacy/content-newsmlpost.php:64
+msgid "Edit"
+msgstr "Ändern"
+
+#: ../legacy/single-newsmlpost.php:35
+msgid "Next"
+msgstr "Weiter"
+
+#: ../legacy/single-newsmlpost.php:36
+msgid "Next post:"
+msgstr "Nächster Eintrag"
+
+#: ../legacy/single-newsmlpost.php:38
+msgid "Previous"
+msgstr "Zurück"
+
+#: ../legacy/single-newsmlpost.php:39
+msgid "Previous post:"
+msgstr "Vorheriger Eintrag"
+
+#: ../newsmlg2import.php:18
+msgid ""
+"Imports NewsML-G2 data (APA, APA-OTS, Kathpress and Thomson Reuters) and "
+"inserts them as NewsML Post which is accessible via http://your.blog/news. "
+"The access to the NewsML-G2 files is possbile via HTTP and FTP. Every 5 "
+"minutes the folder is parsed again and the news get updated. "
+"<strong>Warning: </strong> After the activation of the plugin you will be "
+"redirected to the settings to configure the plugin."
+msgstr ""
+"Importiert NewsML-G2-Daten (APA, APA-OTS, Kathpress und Thomson Reuters) und "
+"fügt sie als NewsML-Post ein, welche über folgende Adresse abgerufen werden "
+"können: http://your.blog/news. Der Zugriff auf die NewsML-G2-Dateien ist "
+"über HTTP und FTP möglich. Alle 5 Minuten wird der Ordner erneut geparst und "
+"die News werden aktualisiert. <strong>Achtung:</strong> Nach der Aktivierung "
+"des Plugins werden sie zu den Einstellungen des Plugins weitergeleitet um es "
+"dort zu konfigurieren."
+
+#: ../newsmlg2import.php:117
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: ../newsmlg2import.php:617
+msgid "Updated newsposts"
+msgstr "Newseinträge aktualisiert"
+
+#: ../newsmlg2import.php:663
+msgid "Imported mediatopics"
+msgstr "Mediatopics importiert"
+
+#: ../newsmlg2import.php:714
+msgid "Please enter a valid URL."
+msgstr "Bitte geben sie eine gültige URL ein."
+
+#: ../newsmlg2import.php:725
+msgid "Please enter correct URL, starting with ftp://."
+msgstr "Bitte geben sie eine korrekte FTP-Adresse ein, beginnend mit ftp://"
+
+#: ../newsmlg2import.php:736
+msgid "Please enable access via FTP."
+msgstr "Bitte aktivieren sie den Zugang über FTP."
+
+#: ../newsmlg2import.php:753
+msgid "Please enter a valid number."
+msgstr "Bitte geben sie eine gültige Zahl ein."
+
+#: ../newsmlg2import.php:771 ../newsmlg2import.php:784
+msgid "NewsML-G2 Import Plugin Options"
+msgstr "News-ML-G2 Importer Einstellungen"
+
+#: ../newsmlg2import.php:787
+msgid ""
+"<strong>Step 1:</strong> Click the \"Import Media Topics\" button to import "
+"all mediatopics from the IPTC server."
+msgstr ""
+"<strong>Schritt  1:</strong> Klicken sie auf den Button \"Media Topics "
+"importieren\" Button um alle Mediatopics vom IPTC Server zu importieren."
+
+#: ../newsmlg2import.php:788
+msgid "<strong>Step 2:</strong> Set the right address to your server"
+msgstr ""
+"<strong>Schritt 2:</strong> Tragen sie die richtige Adresse für ihren Server "
+"ein."
+
+#: ../newsmlg2import.php:789
+msgid ""
+"<strong>Step 3:</strong> Set your login credentials for FTP if required."
+msgstr ""
+"<strong>Schritt 3:</strong> Tragen sie die Zugangsdaten für einen Zugang "
+"über FTP ein sofern diese benötigt werden."
+
+#: ../newsmlg2import.php:790
+msgid ""
+"<strong>Step 4:</strong> Click the \"Update newsposts\" button to import all "
+"NewsML-G2 messages found in the denoted folder or the rss.xml file."
+msgstr ""
+"<strong>Schritt 4:</strong> Klicken sie auf den Button \"Newseinträge "
+"aktualisieren\" um alle NewsML-G2 Nachrichten, welche sich im angegebenen "
+"Ordner oder dem rss.xml File befinden, zu importieren."
+
+#: ../newsmlg2import.php:796
+msgid "NewsML Folder URL (with trailing /):"
+msgstr "NewsML Ordner-Adresse (mit abschließendem /):"
+
+#: ../newsmlg2import.php:803
+msgid "FTP Username (if necessary):"
+msgstr "FTP Username (wenn nötig):"
+
+#: ../newsmlg2import.php:810
+msgid "FTP Password (if necessary):"
+msgstr "FTP Passwort (wenn nötig):"
+
+#: ../newsmlg2import.php:817
+msgid "Access via FTP:"
+msgstr "Zugang über FTP:"
+
+#: ../newsmlg2import.php:825
+msgid "Use rss.xml as source:"
+msgstr "Benutze rss.xml als Quelle:"
+
+#: ../newsmlg2import.php:833
+msgid "Delete posts after x days (0 = never):"
+msgstr "Lösche Posts nach x Tagen (0 = nie):"
+
+#: ../newsmlg2import.php:840
+msgid "Show news on front page:"
+msgstr "News auf der Startseite anzeigen:"
+
+#: ../newsmlg2import.php:848
+msgid "Number of news in kiosk mode:"
+msgstr "Anzahl der Nachrichten im Kiosk-Modus:"
+
+#: ../newsmlg2import.php:855
+msgid "Kiosk mode display duration in seconds:"
+msgstr "Kiosk-Modus Anzeigedauer in Sekunden:"
+
+#: ../newsmlg2import.php:862
+msgid "Import Media Topics:"
+msgstr "Media Topics importieren:"
+
+#: ../newsmlg2import.php:865
+msgid "Import Media Topics"
+msgstr "Media Topics importieren:"
+
+#: ../newsmlg2import.php:869
+msgid "Update newsposts:"
+msgstr "Newseinträge aktualisieren"
+
+#: ../newsmlg2import.php:872
+msgid "Update newsposts"
+msgstr "Newseinträge aktualisieren"
+
+#: ../newsmlg2import.php:876
+msgid "Check delete newsposts:"
+msgstr "Überprüfe zu löschende Newseinträge"
+
+#: ../newsmlg2import.php:879
+msgid "Delete expired newsposts"
+msgstr "Lösche abgelaufene Newsposts"
+
+#: ../newsmlg2import.php:884
+msgid "Save Changes"
+msgstr "Änderungen speichern"
+
+#: ../newsmlg2import.php:952
+msgid "Every 5 minutes"
+msgstr "Alle 5 Minuten"
+
+#: ../newsmlg2import.php:979
+msgid "NewsML Posts"
+msgstr "NewsML Beiträge"
+
+#: ../newsmlg2import.php:980
+msgid "NewsML Post"
+msgstr "NewsML Post"
+
+#: ../newsmlg2import.php:981
+msgid "Add New Post"
+msgstr "Neuen Beitrag hinzufügen"
+
+#: ../newsmlg2import.php:998 ../newsmlg2import.php:1026
+msgid "QCode"
+msgstr "QCode"
+
+#: ../newsmlg2import.php:1000 ../newsmlg2import.php:1007
+#: ../newsmlg2import.php:1029 ../newsmlg2import.php:1037
+msgid "Enter a value for this field"
+msgstr "Bitte geben sie einen Wert ein"
+
+#: ../newsmlg2import.php:1005 ../newsmlg2import.php:1034
+msgid "Last modified"
+msgstr "Zuletzt geändert"
+
+#: ../newsmlg2import.php:1074 ../newsmlg2import.php:1075
+#: ../newsmlg2import.php:1076
+msgid "Media Topic"
+msgid_plural "Media Topics"
+msgstr[0] "Media Topic"
+msgstr[1] "Media Topics"
+
+#: ../newsmlg2import.php:1077
+msgid "All Media Topics"
+msgstr "Alle Media Topics"
+
+#: ../newsmlg2import.php:1078
+msgid "Parent Media Topic"
+msgstr "Übergeordnetes Media Topic"
+
+#: ../newsmlg2import.php:1079
+msgid "Parent Item:"
+msgstr "Übergeordnetes Element:"
+
+#: ../newsmlg2import.php:1080
+msgid "New Media Topic"
+msgstr "Neues Media Topic"
+
+#: ../newsmlg2import.php:1081
+msgid "Add Media Topic"
+msgstr "Media Topic hinzufügen"
+
+#: ../newsmlg2import.php:1082
+msgid "Edit Media Topic"
+msgstr "Media Topic ändern"
+
+#: ../newsmlg2import.php:1083
+msgid "Update Media Topic"
+msgstr "Media Topic aktualisieren"
+
+#: ../newsmlg2import.php:1084
+msgid "Separate Media Topic with commas"
+msgstr "Media Topics mit Beistrich trennen"
+
+#: ../newsmlg2import.php:1085
+msgid "Search Media Topics"
+msgstr "Media Topics durchsuchen"
+
+#: ../newsmlg2import.php:1086
+msgid "Add or remove Media Topics"
+msgstr "Media Topic erstellen oder entfernen"
+
+#: ../newsmlg2import.php:1087
+msgid "Choose from the most used Media Topics"
+msgstr "Wähle aus den meistgenutzten Media Topics"
+
+#: ../newsmlg2import.php:1088
+msgid "Not Found"
+msgstr "Nicht gefunden"
+
+#: ../newsmlg2import.php:1273 ../newsmlg2import.php:1300
+msgid "Subtitle"
+msgstr "Untertitel"
+
+#: ../newsmlg2import.php:1280 ../newsmlg2import.php:1319
+msgid "Locations"
+msgstr "Orte"
+
+#~ msgid ""
+#~ "<strong>Step 1:</strong> Click the \"Import now\" button to import all "
+#~ "mediatopics from the IPTC server."
+#~ msgstr ""
+#~ "<strong>Schritt  1:</strong> Klicken sie auf den Button \"Jetzt "
+#~ "importieren\" Button um alle Mediatopics vom IPTC Server zu importieren."
+
+#~ msgid ""
+#~ "<strong>Step 4:</strong> Click the \"Update now\" button to import all "
+#~ "NewsML-G2 messages found in the denoted folder or the rss.xml file."
+#~ msgstr ""
+#~ "<strong>Schritt 4:</strong> Klicken sie auf den Button \"Jetzt "
+#~ "aktualisieren\" um alle NewsML-G2 Nachrichten, welche sich im angegebenen "
+#~ "Ordner oder dem rss.xml File befinden, zu importieren."
+
+#~ msgid "Import mediatopics:"
+#~ msgstr "Mediatopics importieren: "
+
+#~ msgid "Import now"
+#~ msgstr "Jetzt importieren"
+
+#~ msgid "Update now"
+#~ msgstr "Jetzt aktualisieren"
+
+#~ msgid "Check now"
+#~ msgstr "Überprüfen"
+
+#~ msgid ""
+#~ "<strong>Step 1:</strong> Click the \"Import mediatopics\" button to "
+#~ "import all mediatopics from the IPTC server."
+#~ msgstr ""
+#~ "<strong>Schritt  1:</strong> Klicken sie auf den Button \"Mediatopics\" "
+#~ "button to import all mediatopics from the IPTC server."
+
+#~ msgid ""
+#~ "Imports NewsML-G2 data (APA, APA-OTS, Kathpress and Thomson Reuters) and "
+#~ "inserts them as NewsML Post which is accessible via http://your.blog/"
+#~ "news. The access to the NewsML-G2 files is possbile via HTTP and FTP. "
+#~ "Every 5 minutes the folder is parsed again and the news get updated. "
+#~ "<strong>Warning: </strong> On the first activation of the plugin all "
+#~ "mediatopics are imported. This may take a while. After the plugin is "
+#~ "activated, the latest news will be imported in the background."
+#~ msgstr ""
+#~ "Importiert NewsML-G2-Daten (APA, APA-OTS, Kathpress und Thomson Reuters) "
+#~ "und fügt sie als NewsML-Post ein, welche über folgende Adresse abgerufen "
+#~ "werden können: http://your.blog/news. Der Zugriff auf die NewsML-G2-"
+#~ "Dateien ist über HTTP und FTP möglich. Alle 5 Minuten wird der Ordner "
+#~ "erneut geparst und die News werden aktualisiert. <strong>Achtung:</"
+#~ "strong> Bei der ersten Aktivierung werden alle Mediatopics importiert. "
+#~ "Dies kann eine Weile dauern. Nachdem das Plugin aktiviert ist, werden die "
+#~ "neuesten News im Hintergrund importiert."
+
+#~ msgid ""
+#~ "Imports NewsML-G2 data (APA, APA-OTS, Kathpress and Thomson Reuters) and "
+#~ "inserts them as NewsML Post which is accessible via http://your.blog/"
+#~ "news. The access to the NewsML-G2 files is possbile via HTTP and FTP. "
+#~ "Every 5 minutes the folder is parsed again and the news get updated. "
+#~ "<strong>Warning: </strong> The first activation of this plugin may take a "
+#~ "while."
+#~ msgstr ""
+#~ "Importiert NewsML-G2-Daten (APA, APA-OTS, Kathpress und Thomson Reuters) "
+#~ "und fügt sie als NewsML-Post ein, welche über folgende Adresse abgerufen "
+#~ "werden können: http://your.blog/news. Der Zugriff auf die NewsML-G2-"
+#~ "Dateien ist über HTTP und FTP möglich. Alle 5 Minuten wird der Ordner "
+#~ "erneut geparst und die News werden aktualisiert. <strong>Achtung:</"
+#~ "strong> Die erste Aktivierung des Plugins kann eine Weile dauern."
+
+#~ msgid "Every n days (n set in options)"
+#~ msgstr "Alle n Tage (n in wird in den Einstellungen gesetzt)"
