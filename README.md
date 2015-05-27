@@ -1,4 +1,4 @@
-=== NewsML-G2 Importer ===
+# NewsML-G2 Importer
 Contributors: BernhardPunz
 Donate link: http://i-dont-need-donations.com/
 Tags: NewsML-G2, import, APA, reuters, kathpress
@@ -10,7 +10,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Imports NewsML-G2 data and makes them accessible from your Wordpress installation.
 
-== Description ==
+## Description
 
 This plugin provides an simple and easy way to import NewsML-G2 documents into Wordpress and to publish them as posts inside your blog.  
 It imports all .xml documents containing NewsML-G2 data found in a provided folder into the Wordpress database and saves them as newsml_post.  
@@ -19,7 +19,7 @@ You can access the files through HTTP and FTP. If provided, you can use a file c
 There is also a kiosk mode, switching through the latest NewsML-G2 posts and triggering the wp-cron. This is optional but can come very handy when you want to show the latest posts as slideshow.
 
 
-== Installation ==
+## Installation
 
 1. Upload the folder 'newsml-g2-importer' to the /wp-content/plugins/ directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
@@ -35,26 +35,26 @@ There is also a kiosk mode, switching through the latest NewsML-G2 posts and tri
 8. Set your Permalinks structure through the 'Settings -> Permalinks' menu in Wordpress to 'Post name'. Otherwise your newsml_posts will not be shown.
  
 
-== Frequently Asked Questions ==
+## Frequently Asked Questions
 
-= Have a question? =
+### Have a question?
 
 Contact me!
 
 
-== Screenshots ==
+##Screenshots
 
 1. The first portion of the settings page, showing the configuration for accessing the files.
 2. The second portion of the settings page, showing miscellaneous settings.
 3. The third portion of the settings page, showing the buttons for the main actions of the plugin. 
 
-== Changelog ==
+## Changelog
 
-= 1.0 =
+### 1.0 
 * Initial release
 
 
-== Upgrade Notice ==
+## Upgrade Notice
 
-= 1.0 = 
+### 1.0 
 * Initial release
