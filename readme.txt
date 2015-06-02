@@ -1,7 +1,6 @@
 === NewsML-G2 Importer ===
 Contributors: BernhardPunz
-Donate link: http://i-dont-need-donations.com/
-Tags: NewsML-G2, import, APA, reuters, kathpress
+Tags: NewsML-G2, import, APA, IPTC
 Requires at least: 4.1.1
 Tested up to: 4.2.2
 Stable tag: 1.0
@@ -16,7 +15,6 @@ This plugin provides an simple and easy way to import NewsML-G2 documents into W
 It imports all .xml documents containing NewsML-G2 data found in a provided folder into the Wordpress database and saves them as newsml_post.  
 newsml_post is a custom post type with a few additional metafields which contain the data, that's stored in the NewsML-G2 document.  
 You can access the files through HTTP and FTP. If provided, you can use a file called rss.xml. This file needs to have the filenames to import in an <item> element inside an <link> element for each file.  
-There is also a kiosk mode, switching through the latest NewsML-G2 posts and triggering the wp-cron. This is optional but can come very handy when you want to show the latest posts as slideshow.
 
 
 == Installation ==

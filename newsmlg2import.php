@@ -63,8 +63,6 @@ class NewsMLG2_Importer_Plugin {
         'expire_time' => '10',
         'use_rss' => '',
         'news_frontpage' => '',
-        'kiosk_count' => '5',
-        'kiosk_duration' => '20',
     );
 
     /**
@@ -633,8 +631,6 @@ class NewsMLG2_Importer_Plugin {
         $valid['url_newsml'] = sanitize_text_field( $input['url_newsml'] );
         $valid['image_dir'] = sanitize_text_field( 'wp-content/newsml-images' );
         $valid['expire_time'] = intval( sanitize_text_field( $input['expire_time'] ) );
-        $valid['kiosk_duration'] = intval( sanitize_text_field( $input['kiosk_duration'] ) );
-        $valid['kiosk_count'] = intval( sanitize_text_field( $input['kiosk_count'] ) );
 
         if ( isset( $input['enable_ftp'] ) ) {
             $valid['enable_ftp'] = sanitize_text_field( $input['enable_ftp'] );
@@ -797,20 +793,6 @@ class NewsMLG2_Importer_Plugin {
                             <input type="checkbox"
                                    name="' . $this->option_name . '[news_frontpage]"
                                    value="yes" ' . checked( 'yes', $options['news_frontpage'], false ) . '>
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">' . __( 'Number of news in kiosk mode:', 'newsml-import' ) . '</th>
-                        <td>
-                               <input type="number" name="' . $this->option_name . '[kiosk_count]"
-                               value="' . $options['kiosk_count'] . '" min="0" size="5">
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">' . __( 'Kiosk mode display duration in seconds:', 'newsml-import' ) . '</th>
-                        <td>
-                               <input type="number" name="' . $this->option_name . '[kiosk_duration]"
-                               value="' . $options['kiosk_duration'] . '" min="0" size="5">
                         </td>
                     </tr>
                     <tr valign="top">
