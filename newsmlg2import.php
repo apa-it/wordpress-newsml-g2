@@ -630,7 +630,7 @@ class NewsMLG2_Importer_Plugin {
 
         $valid['url_newsml'] = sanitize_text_field( $input['url_newsml'] );
         $valid['image_dir'] = sanitize_text_field( 'wp-content/newsml-images' );
-        $valid['expire_time'] = intval( sanitize_text_field( $input['expire_time'] ) );
+        $valid['expire_time'] = sanitize_text_field( $input['expire_time'] );
 
         if ( isset( $input['enable_ftp'] ) ) {
             $valid['enable_ftp'] = sanitize_text_field( $input['enable_ftp'] );
@@ -703,6 +703,8 @@ class NewsMLG2_Importer_Plugin {
 
             $valid['expire_time'] = sanitize_text_field( $this->data['expire_time'] );
         }
+
+        $valid['expire_time'] = intval( $valid['expire_time'] );
 
         return $valid;
     }
