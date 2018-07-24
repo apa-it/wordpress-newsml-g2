@@ -267,6 +267,9 @@ class NewsMLG2_Importer_Plugin {
         // Load all the files with their associated parser and create a NewsML_Object
         foreach ( $diff as $df ) {
             $file = $access->open_file( $df );
+            if (empty($file)){
+            	continue;
+            }
 
             $xml = new DOMDocument();
             $xml->preserveWhiteSpace = false;

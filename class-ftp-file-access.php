@@ -78,9 +78,11 @@ class FTP_File_Access implements Interface_File_Access {
 
         if ( ( ! $this->_connection ) || ( ! $login_result ) ) {
             die( 'Error while connecting to FTP server.' );
-        } else {
-            ftp_chdir( $this->_connection, 'apa_ots' ); // Just now needed because our files are in the folder apa_ots and you can not directly connect to a subfolder with FTP
         }
+        //else {
+            //ftp_chdir( $this->_connection, 'apa_ots' );
+            // Just now needed because our files are in the folder apa_ots and you can not directly connect to a subfolder with FTP
+        //}
     }
 
     /**
