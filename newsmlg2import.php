@@ -178,7 +178,12 @@ class NewsMLG2_Importer_Plugin {
     public function remove_content_from_archive( $template ) {
         global $post;
         $post_types = array( 'newsml_post' );
-        if ( is_post_type_archive( $post_types ) && ! is_single() || count( wp_get_object_terms( $post->ID, 'mediatopic' ) ) > 0 && ! is_single() && ! is_home() ) {
+        $objarr= wp_get_object_terms( $post->ID, 'mediatopic' );
+        $term_cnt=0;
+        if ( is_array($objarr) ){
+        	$term_cnt = count($objarr);
+        }
+        if ( is_post_type_archive( $post_types ) && ! is_single() || $term_cnt > 0 && ! is_single() && ! is_home() ) {
             return "";
         } else {
             return $template;
