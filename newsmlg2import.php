@@ -114,6 +114,10 @@ class NewsMLG2_Importer_Plugin {
         $plugin = plugin_basename( __FILE__ );
         add_filter( "plugin_action_links_$plugin", array( $this, 'plugin_add_settings_link' ) );
 
+	    // This is needed for cron to set the right timezone
+        $mytheme_timezone = get_option('timezone_string');
+	    date_default_timezone_set($mytheme_timezone);
+
     }
 
     /**
@@ -312,7 +316,7 @@ class NewsMLG2_Importer_Plugin {
                         'post_content' => $object->get_content(),
                         'post_status' => 'publish',
                         'post_date' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
-                        'post_date_gmt' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
+                        'post_date_gmt' => gmdate( 'Y-m-d H:i:s', $object->get_timestamp() ),
                     ) );
 
                     // Just try changing the mediatopics if the post was successfully created
@@ -348,6 +352,16 @@ class NewsMLG2_Importer_Plugin {
                         $subtitle = $object->get_subtitle();
                         if ( ! empty( $subtitle ) ) {
                             add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
+                        }
+
+                        $urgency = $object->get_urgency();
+                        if ( ! empty( $urgency ) ) {
+	                        add_post_meta( $new_post_id, 'newsml_meta_urgency', $object->get_urgency() );
+                        }
+
+                        $desks = $object->get_desks();
+                        if (!empty($desks)){
+                        	add_post_meta( $new_post_id, 'newsml_meta_desks', implode(', ', $desks ));
                         }
 
                         $locs = $object->get_locations();
@@ -920,6 +934,7 @@ class NewsMLG2_Importer_Plugin {
                 'public' => true,
                 'has_archive' => true,
                 'rewrite' => array( 'slug' => 'news' ),
+	            'supports' => array('title','editor','thumbnail'),
             )
         );
     }
