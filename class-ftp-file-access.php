@@ -159,9 +159,20 @@ class FTP_File_Access implements Interface_File_Access {
      */
     public function save_media_files( $path, $filenames ) {
         foreach ( $filenames as $file ) {
-            $name = substr( $file['href'], 2 );
-            if ( ftp_get( $this->_connection, $path . '/' . $name, $name, FTP_BINARY ) ) {
-            }
+	        if (substr($file['href'],0,4) === "http"){
+		        $name = array_slice(explode('/', rtrim($file['href'])),-1)[0];
+		        if (substr($name,-3) === "jff"){ //replace jff extensions!
+		        	$fileinfo = pathinfo($name);
+		        	$name = $fileinfo['filename'] . ".jpg";
+		        }
+		        $picdata = file_get_contents( $file['href'] );
+		        file_put_contents( $path . '/' . $name, $picdata );
+	        }
+	        else {
+		        $name = substr( $file['href'], 2 );
+		        if ( ftp_get( $this->_connection, $path . '/' . $name, $name, FTP_BINARY ) ) {
+		        }
+	        }
         }
     }
 

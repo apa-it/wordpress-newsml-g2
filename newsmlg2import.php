@@ -35,6 +35,16 @@ require_once( ABSPATH . 'wp-admin/includes/media.php' );
 require_once( ABSPATH . 'wp-admin/includes/file.php' );
 require_once( ABSPATH . 'wp-admin/includes/image.php' );
 
+if ( ! function_exists('write_log')) {
+	function write_log ( $log )  {
+		if ( is_array( $log ) || is_object( $log ) ) {
+			error_log( print_r( $log, true ) );
+		} else {
+			error_log( $log );
+		}
+	}
+}
+
 /**
  * Class NewsML_Importer_Plugin
  */
@@ -270,7 +280,7 @@ class NewsMLG2_Importer_Plugin {
 
         // Load all the files with their associated parser and create a NewsML_Object
         foreach ( $diff as $df ) {
-            $file = $access->open_file( $df );
+        	$file = $access->open_file( $df );
             if (empty($file)){
             	continue;
             }
@@ -293,7 +303,6 @@ class NewsMLG2_Importer_Plugin {
 
         // Iterate through our news objects and save them to the database
         foreach ( $news_to_add as $object ) {
-
 
             // If the version of the object is 1, it is a new post that should not be in the database.
             if ( $object->get_version() == '1' ) {
@@ -358,6 +367,10 @@ class NewsMLG2_Importer_Plugin {
                         if ( ! empty( $urgency ) ) {
 	                        add_post_meta( $new_post_id, 'newsml_meta_urgency', $object->get_urgency() );
                         }
+	                    $urgency = $object->get_source();
+	                    if ( ! empty( $urgency ) ) {
+		                    add_post_meta( $new_post_id, 'newsml_meta_source', $object->get_source() );
+	                    }
 
                         $desks = $object->get_desks();
                         if (!empty($desks)){
@@ -376,8 +389,42 @@ class NewsMLG2_Importer_Plugin {
                         $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
 
                         $multis = $object->get_multimedia();
+                        $set_thumbnail=0;
                         foreach ( $multis as $file ) {
-                            $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+                        	if (substr($file['href'],0,4) === 'http'){
+		                        $name = array_slice(explode('/', rtrim($file['href'])),-1)[0];
+		                        if (substr($name,-3) === "jff"){ //replace jff extensions!
+			                        $fileinfo = pathinfo($name);
+			                        $name = $fileinfo['filename'] . ".jpg";
+		                        }
+		                        //check if image or attachment!
+		                        // Set variables for storage, fix file filename for query strings.
+		                        preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', home_url() . '/' . $result['image_dir'] . '/' . $name, $matches );
+		                        if ( ! $matches ) {
+			                        //This is not a image file!
+			                        $tmp = download_url(home_url() . '/' . $result['image_dir'] . '/' . $name);
+			                        $file_array['name'] = $name;
+			                        $file_array['tmp_name'] = $tmp;
+
+			                        $att_id = media_handle_sideload($file_array, $new_post_id, 'attachment for '. $object->get_title());
+			                        if (is_wp_error($att_id)){
+			                        	write_log("Error in media_handle_sideload");
+			                        	write_log($att_id);
+			                        }
+			                        @unlink($file_array['tmp_name']);
+		                        }
+		                        else {
+		                        	// It's a image
+			                        $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $name, $new_post_id, 'image for ' . $object->get_title() ,'id');
+			                        if (!$set_thumbnail && !is_wp_error($image)){ //only set 1st image as arcticleimage
+			                        	$set_thumbnail=1;
+				                        set_post_thumbnail($new_post_id,$image);
+			                        }
+		                        }
+	                        }
+	                        else {
+		                        $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+	                        }
                         }
 
                         add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
@@ -465,7 +512,21 @@ class NewsMLG2_Importer_Plugin {
                             add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
                         }
 
-                        $locs = $object->get_locations();
+	                    $urgency = $object->get_urgency();
+	                    if ( ! empty( $urgency ) ) {
+		                    add_post_meta( $new_post_id, 'newsml_meta_urgency', $object->get_urgency() );
+	                    }
+	                    $urgency = $object->get_source();
+	                    if ( ! empty( $urgency ) ) {
+		                    add_post_meta( $new_post_id, 'newsml_meta_source', $object->get_source() );
+	                    }
+
+	                    $desks = $object->get_desks();
+	                    if (!empty($desks)){
+		                    add_post_meta( $new_post_id, 'newsml_meta_desks', implode(', ', $desks ));
+	                    }
+
+	                    $locs = $object->get_locations();
                         if ( ! empty( $locs ) ) {
                             $locations = array();
                             foreach ( $locs as $loc ) {
@@ -474,12 +535,54 @@ class NewsMLG2_Importer_Plugin {
                             add_post_meta( $new_post_id, 'newsml_meta_location', implode( ', ', $locations ) );
                         }
 
-                        $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
+                        //$access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
 
-                        $multis = $object->get_multimedia();
-                        foreach ( $multis as $file ) {
-                            $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
-                        }
+                        //$multis = $object->get_multimedia();
+                        //foreach ( $multis as $file ) {
+                        //    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+                        //}
+
+	                    $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
+
+	                    $multis = $object->get_multimedia();
+	                    $set_thumbnail=0;
+	                    foreach ( $multis as $file ) {
+		                    if (substr($file['href'],0,4) === 'http'){
+			                    $name = array_slice(explode('/', rtrim($file['href'])),-1)[0];
+			                    if (substr($name,-3) === "jff"){ //replace jff extensions!
+				                    $fileinfo = pathinfo($name);
+				                    $name = $fileinfo['filename'] . ".jpg";
+			                    }
+			                    //check if image or attachment!
+			                    // Set variables for storage, fix file filename for query strings.
+			                    preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', home_url() . '/' . $result['image_dir'] . '/' . $name, $matches );
+			                    if ( ! $matches ) {
+				                    //This is not a image file!
+				                    $tmp = download_url(home_url() . '/' . $result['image_dir'] . '/' . $name);
+				                    $file_array['name'] = $name;
+				                    $file_array['tmp_name'] = $tmp;
+
+				                    $att_id = media_handle_sideload($file_array, $new_post_id, 'attachment for '. $object->get_title());
+				                    if (is_wp_error($att_id)){
+					                    write_log("Error in media_handle_sideload");
+					                    write_log($att_id);
+				                    }
+				                    @unlink($file_array['tmp_name']);
+			                    }
+			                    else {
+				                    // It's a image
+				                    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $name, $new_post_id, 'image for ' . $object->get_title() ,'id');
+				                    if (!$set_thumbnail && !is_wp_error($image)){ //only set 1st image as arcticleimage
+					                    $set_thumbnail=1;
+					                    set_post_thumbnail($new_post_id,$image);
+				                    }
+			                    }
+		                    }
+		                    else {
+			                    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+		                    }
+	                    }
+
 
                         add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
                         add_post_meta( $new_post_id, 'newsml_meta_version', $object->get_version() );
@@ -554,7 +657,8 @@ class NewsMLG2_Importer_Plugin {
      * @author Bernhard Punz
      */
     public function cron_update_delete() {
-        $this->check_delete_expired_posts();
+	    $this->_home_path = get_home_path();
+    	$this->check_delete_expired_posts();
         $this->insert_news_to_db();
     }
 

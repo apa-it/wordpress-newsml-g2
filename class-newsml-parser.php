@@ -61,7 +61,7 @@ class NewsML_Parser {
         $query = '//tempNS:newsMessage/tempNS:itemSet'; // all itemSet
         $result = $xpath->query( $query );
 
-        $guid = $version = $copyrightholder = $copyrightnotice = $timestamp = $content = $urgency = '';
+        $guid = $version = $copyrightholder = $copyrightnotice = $timestamp = $content = $urgency = $source = '';
         $titles = array_fill_keys( array( 'title', 'subtitle' ), '' );
         $mediatopics = $locations = $desks = array();
 
@@ -71,8 +71,8 @@ class NewsML_Parser {
             // Now we need to get the itemClass so we can differ between pictures and text
             $var = $child->getElementsByTagName( 'itemClass' )->item( 0 );
 
-            // If it is a picture
-            if ( $var->getAttribute( 'qcode' ) == 'ninat:picture' ) {
+            // If it is a picture or a graphic
+            if ( $var->getAttribute( 'qcode' ) == 'ninat:picture' || $var->getAttribute( 'qcode' ) == 'ninat:graphics' ) {
 
                 // Of course we want all pictures, so we get them all
                 $remote_contents = $child->getElementsByTagName( 'remoteContent' );
@@ -90,6 +90,31 @@ class NewsML_Parser {
 
                     $remote[] = $topic;
                 }
+
+                //Test to import ABD
+	            $textitem = $var->parentNode->parentNode;
+
+	            $doc = new DOMDocument();
+	            $doc->formatOutput = true;
+	            $doc->loadXML( '<root></root>' );
+	            $doc->preserveWhiteSpace = false;
+
+	            $to_import = $doc->importNode( $textitem, true );
+	            $doc->documentElement->appendChild( $to_import );
+
+	            $guid = $this->get_guid_from_newsml( $doc );
+	            $version = $this->get_version_from_newsml( $doc );
+	            $copyrightholder = $this->get_copyrightholder_from_newsml( $doc );
+	            $copyrightnotice = $this->get_copyrightnotice_from_newsml( $doc );
+	            $timestamp = $this->get_datetime_from_newsml( $doc );
+	            $titles = $this->get_titles_from_newsml( $doc );
+	            $mediatopics = $this->get_mediatopics_from_newsml( $doc );
+	            $content = $this->get_content_from_newsml( $doc );
+	            $locations = $this->get_locations_from_newsml( $doc );
+	            $urgency = $this->get_urgency_from_newsml( $doc );
+	            $desks = $this->get_desks_from_newsml( $doc );
+	            $source = $this->get_source_from_newsml( $doc );
+
 
                 // So it is a text, so we do some stuff and add that stuff to our NewsML_Object
             } elseif ( $var->getAttribute( 'qcode' ) == 'ninat:text' ) {
@@ -117,6 +142,7 @@ class NewsML_Parser {
                 $locations = $this->get_locations_from_newsml( $doc );
                 $urgency = $this->get_urgency_from_newsml( $doc );
 	            $desks = $this->get_desks_from_newsml( $doc );
+	            $source = $this->get_source_from_newsml( $doc );
             }
         }
 
@@ -132,6 +158,7 @@ class NewsML_Parser {
         $news_object->set_content( $content );
         $news_object->set_urgency($urgency);
         $news_object->set_desks($desks);
+        $news_object->set_source($source);
 
         return $news_object;
     }
@@ -323,7 +350,32 @@ class NewsML_Parser {
 	    }
     }
 
-    /**
+	/**
+	 * Gets the source from the XML and returns it as XML String.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param DOMDocument $xml The DOM Tree of the file to parse.
+	 *
+	 * @return string The urgency if found, otherwise an empty string.
+	 */
+	public function get_source_from_newsml( $xml ) {
+		$xpath = $this->generate_xpath_on_xml( $xml );
+
+		// Get all media topics
+		$query_source = '//tempNS:service[contains(@qcode, "apasvc:")]/tempNS:name';
+		$result_source = $xpath->query( $query_source );
+
+		$source = $result_source->item( 0 )->nodeValue;
+
+	    if ( $source != '' ) {
+		    return $source;
+	    } else {
+		    return '';
+	    }
+	}
+
+	/**
      * Gets all mediatopics of the news message and returns them as an array.
      *
      * @author Bernhard Punz

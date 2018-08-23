@@ -101,6 +101,13 @@ class NewsML_Object {
 	 */
 	private $_desks = array();
 
+	/**
+	 * The source of the news object
+	 *
+	 * @var string $_urgency
+	 */
+	private $_source = "";
+
     /**
      * Sets the QCode of the news object to $value.
      *
@@ -451,6 +458,28 @@ class NewsML_Object {
 	 */
 	public function add_desk( $value ) {
 		array_push( $this->_desks, $value );
+	}
+
+	/**
+	 * Sets the source of the news object to $value.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param string $value
+	 */
+	public function set_source( $value ) {
+		$this->_source = $value;
+	}
+
+	/**
+	 * Returns the source of the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @return string
+	 */
+	public function get_source() {
+		return $this->_source;
 	}
 
 }
