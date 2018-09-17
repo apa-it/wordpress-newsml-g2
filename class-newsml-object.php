@@ -108,7 +108,14 @@ class NewsML_Object {
 	 */
 	private $_source = "";
 
-    /**
+	/**
+	 * The slugline of the news object
+	 *
+	 * @var string $_urgency
+	 */
+	private $_slugline = "";
+
+	/**
      * Sets the QCode of the news object to $value.
      *
      * @author Bernhard Punz
@@ -480,6 +487,28 @@ class NewsML_Object {
 	 */
 	public function get_source() {
 		return $this->_source;
+	}
+
+	/**
+	 * Sets the slugline of the news object to $value.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param string $value
+	 */
+	public function set_slugline( $value ) {
+		$this->_slugline = $value;
+	}
+
+	/**
+	 * Returns the slugline of the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @return string
+	 */
+	public function get_slugline() {
+		return $this->_slugline;
 	}
 
 }

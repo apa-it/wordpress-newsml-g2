@@ -61,7 +61,7 @@ class NewsML_Parser {
         $query = '//tempNS:newsMessage/tempNS:itemSet'; // all itemSet
         $result = $xpath->query( $query );
 
-        $guid = $version = $copyrightholder = $copyrightnotice = $timestamp = $content = $urgency = $source = '';
+        $guid = $version = $copyrightholder = $copyrightnotice = $timestamp = $content = $urgency = $source = $slugline = '';
         $titles = array_fill_keys( array( 'title', 'subtitle' ), '' );
         $mediatopics = $locations = $desks = array();
 
@@ -114,6 +114,7 @@ class NewsML_Parser {
 	            $urgency = $this->get_urgency_from_newsml( $doc );
 	            $desks = $this->get_desks_from_newsml( $doc );
 	            $source = $this->get_source_from_newsml( $doc );
+	            $slugline = $this->get_slugline_from_newsml( $doc );
 
 
                 // So it is a text, so we do some stuff and add that stuff to our NewsML_Object
@@ -143,6 +144,7 @@ class NewsML_Parser {
                 $urgency = $this->get_urgency_from_newsml( $doc );
 	            $desks = $this->get_desks_from_newsml( $doc );
 	            $source = $this->get_source_from_newsml( $doc );
+	            $slugline = $this->get_slugline_from_newsml( $doc );
             }
         }
 
@@ -159,6 +161,7 @@ class NewsML_Parser {
         $news_object->set_urgency($urgency);
         $news_object->set_desks($desks);
         $news_object->set_source($source);
+        $news_object->set_slugline($slugline);
 
         return $news_object;
     }
@@ -403,6 +406,30 @@ class NewsML_Parser {
         }
 
         return $topics;
+    }
+
+	/**
+	 * Gets the slugline from the XML and returns it as XML String.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param DOMDocument $xml The DOM Tree of the file to parse.
+	 *
+	 * @return string The uslugline if found, otherwise an empty string.
+	 */
+    public function get_slugline_from_newsml( $xml ) {
+    	$xpath = $this->generate_xpath_on_xml( $xml );
+
+    	$query_slugline = '//tempNS:slugline';
+	    $result_slugline = $xpath->query( $query_slugline );
+
+	    $slugline = $result_slugline->item( 0 )->nodeValue;
+
+	    if ( $slugline != '' ) {
+		    return $slugline;
+	    } else {
+		    return '';
+	    }
     }
 
 	/**
