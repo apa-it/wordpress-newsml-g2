@@ -58,6 +58,26 @@ class SFTP_File_Access implements Interface_File_Access {
      */
     private $_temp_folder = '/temp/';
 
+	/**
+	 * publickey path for sftp
+	 *
+	 * @var resource $_pubkeypath
+	 */
+	private $_pubkeypath = '';
+
+	/**
+	 * privatekey path for sftp
+	 *
+	 * @var resource $_privkeypath
+	 */
+	private $_privkeypath = '';
+
+	/**
+	 * remote username for sftp
+	 *
+	 * @var resource $_remoteuser
+	 */
+    private $_remoteuser = '';
 
     /**
      * Takes the passed arguments and sets $url, $username and $password, needed for the connection.
@@ -68,13 +88,16 @@ class SFTP_File_Access implements Interface_File_Access {
      * @param string $username The username used to connect, default is empty.
      * @param string $password The password used to connect, default is empty.
      */
-    public function __construct( $url, $username = '', $password = '' ) {
+    public function __construct( $url, $username = '', $password = '', $pubkeypath = '', $privkeypath = '', $remoteuser = '' ) {
 
         $temp_url = substr( $url, 7 ); // Remove the sftp:// so users can insert a normal link
         $temp_url = substr( $temp_url, 0, -1 ); // Remove the trailing slash
         $this->_url = $temp_url;
         $this->_username = $username;
         $this->_password = $password;
+        $this->_pubkeypath = $pubkeypath;
+        $this->_privkeypath = $privkeypath;
+        $this->_remoteuser = $remoteuser;
     }
 
     /**
@@ -99,14 +122,24 @@ class SFTP_File_Access implements Interface_File_Access {
 	    if (! $this->_connection){
 		    die( 'Error while connecting to SFTP server.' );
 	    }
-	    if (! ssh2_auth_password($this->_connection, $this->_username, $this->_password)){
-		    die( 'Error while authenticating with SFTP server.' );
+
+	    if ($this->_pubkeypath != '' &&
+	        $this->_privkeypath != '' &&
+	        $this->_remoteuser != ''){
+	    	if (! ssh2_auth_pubkey_file($this->_connection,$this->_remoteuser, $this->_pubkeypath,$this->_privkeypath) ){
+	    		die( 'Error while authenticating with pub/priv key SFTP.');
+		    }
+	    }
+	    else {
+		    if (! ssh2_auth_password($this->_connection, $this->_username, $this->_password)){
+			    die( 'Error while authenticating with SFTP server.' );
+		    }
 	    }
 	    $this->_sftp = ssh2_sftp($this->_connection);
 	    if (! $this->_sftp){
 		    die( 'Error while initializing SFTP subsystem.' );
 	    }
-	    $this->sftp_fd = intval($this->_sftp);
+	    $this->_sftp_fd = intval($this->_sftp);
     }
 
     /**
@@ -120,6 +153,9 @@ class SFTP_File_Access implements Interface_File_Access {
     public function file_list() {
 
 	    $realpath = ssh2_sftp_realpath($this->_sftp,"./");
+	    if ($realpath == "/"){
+	    	$realpath = "/./"; // This is needed for opendir cause the root dir is not accassible!
+	    }
 
 	    $handle = opendir("ssh2.sftp://".$this->_sftp_fd.$realpath);
 
@@ -151,6 +187,9 @@ class SFTP_File_Access implements Interface_File_Access {
         }
 
 	    $realpath = ssh2_sftp_realpath($this->_sftp,"./");
+	    if ($realpath == "/"){
+		    $realpath = "/./"; // This is needed for opendir cause the root dir is not accassible!
+	    }
 
 	    foreach ( $files as $item ) {
 		    $remote = @fopen("ssh2.sftp://".$this->_sftp_fd.$realpath."/".$item,"r");

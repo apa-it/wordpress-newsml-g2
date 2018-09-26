@@ -69,6 +69,10 @@ class NewsMLG2_Importer_Plugin {
         'url_newsml' => '',
         'enable_ftp' => 'no',
         'enable_sftp' => 'no',
+        'enable_ftps' => 'no',
+        'sftp_privkey' => '',
+        'sftp_pubkey' => '',
+        'sftp_remoteuser' => '',
         'ftp_user' => '',
         'ftp_pass' => '',
         'image_dir' => 'wp-content/newsml-images',
@@ -242,10 +246,20 @@ class NewsMLG2_Importer_Plugin {
 
         // Do we want to use SFTP,FTP or HTTP
 	    if ($result['enable_sftp'] == 'yes') {
-	    	$access = new SFTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'] );
+	    	$access = new SFTP_File_Access( $result['url_newsml'],
+			                                $result['ftp_user'],
+			                                $result['ftp_pass'],
+			                                $result['sftp_pubkey'],
+			                                $result['sftp_privkey'],
+			                                $result['sftp_remoteuser']);
 	    }
         else if ( $result['enable_ftp'] == 'yes' ) {
-	        $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'] );
+	        if ( $result['enable_ftps'] == 'yes'){
+		        $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'], true );
+	        }
+	        else {
+		        $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'] );
+	        }
         }
         else {
             $access = new HTTP_File_Access( $result['url_newsml'], '', '' );
@@ -663,7 +677,6 @@ class NewsMLG2_Importer_Plugin {
      * @author Bernhard Punz
      */
     public function cron_update_delete() {
-	    echo "<pre>" . "starting cron for newsml" . "</pre>\n";
     	$this->_home_path = get_home_path();
     	$this->check_delete_expired_posts();
         $this->insert_news_to_db();
@@ -717,6 +730,15 @@ class NewsMLG2_Importer_Plugin {
             exit();
         }
 
+        if ( isset( $_GET['clear-plugin-cache'] ) && $_GET['clear-plugin-cache'] == 'true' ) {
+
+        	//Clear the filelist
+	        update_option( 'newsml-filelist', '' );
+
+	        header( 'Location: options-general.php?page=newsml-list-options' );
+	        exit();
+        }
+
         // If the Import media topics button is clicked
         if ( isset( $_GET['import-mediatopics'] ) && $_GET['import-mediatopics'] == 'true' ) {
 
@@ -765,17 +787,15 @@ class NewsMLG2_Importer_Plugin {
         $valid['image_dir'] = sanitize_text_field( 'wp-content/newsml-images' );
         $valid['expire_time'] = sanitize_text_field( $input['expire_time'] );
 
+        $valid['sftp_privkey'] = sanitize_text_field( $input['sftp_privkey'] );
+	    $valid['sftp_pubkey'] = sanitize_text_field( $input['sftp_pubkey'] );
+	    $valid['sftp_remoteuser'] = sanitize_text_field( $input['sftp_remoteuser'] );
+
         if ( isset( $input['enable_ftp'] ) ) {
             $valid['enable_ftp'] = sanitize_text_field( $input['enable_ftp'] );
         } else {
             $valid['enable_ftp'] = sanitize_text_field( '' );
         }
-
-		if ( isset( $input['enable_sftp'] ) ) {
-			$valid['enable_sftp'] = sanitize_text_field( $input['enable_sftp'] );
-		} else {
-			$valid['enable_sftp'] = sanitize_text_field( '' );
-		}
 
 	    if ( isset( $input['use_rss'] ) ) {
             $valid['use_rss'] = sanitize_text_field( $input['use_rss'] );
@@ -804,29 +824,24 @@ class NewsMLG2_Importer_Plugin {
             $valid['url_newsml'] = sanitize_text_field( $this->data['url_newsml'] );
         }
 
-        if ( ! $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] == 'yes' ) {
+        if ( ! $this->starts_with( $valid['url_newsml'], 'ftp://' ) &&
+             ! $this->starts_with( $valid['url_newsml'], 'sftp://' ) &&
+             ! $this->starts_with( $valid['url_newsml'], 'ftps://' ) && $valid['enable_ftp'] == 'yes' ) {
             add_settings_error(
                 'enable_ftp',
                 'enable_ftp_texterror',
-                __( 'Please enter correct URL, starting with ftp://.', 'newsml-import' ),
+                __( 'Please enter correct URL, starting with ftp://, sftp:// or ftps://.', 'newsml-import' ),
                 'error'
             );
 
             $valid['enable_ftp'] = sanitize_text_field( '' );
         }
 
-		if ( ! $this->starts_with( $valid['url_newsml'], 'sftp://' ) && $valid['enable_sftp'] == 'yes' ) {
-			add_settings_error(
-				'enable_sftp',
-				'enable_sftp_texterror',
-				__( 'Please enter correct URL, starting with sftp://.', 'newsml-import' ),
-				'error'
-			);
 
-			$valid['enable_sftp'] = sanitize_text_field( '' );
-		}
-
-    	if ( $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] != 'yes' ) {
+    	if ( ($this->starts_with( $valid['url_newsml'], 'ftp://' ) ||
+	          $this->starts_with( $valid['url_newsml'], 'sftp://' ) ||
+	          $this->starts_with( $valid['url_newsml'], 'ftps://' ) )
+	         && $valid['enable_ftp'] != 'yes' ) {
             add_settings_error(
                 'enable_ftp',
                 'enable_ftp_texterror',
@@ -837,28 +852,27 @@ class NewsMLG2_Importer_Plugin {
             $valid['url_newsml'] = sanitize_text_field( '' );
         }
 
-		if ( $this->starts_with( $valid['url_newsml'], 'sftp://' ) && $valid['enable_sftp'] != 'yes' ) {
-			add_settings_error(
-				'enable_sftp',
-				'enable_sftp_texterror',
-				__( 'Please enable access via SFTP.', 'newsml-import' ),
-				'error'
-			);
+        if ($this->starts_with( $valid['url_newsml'], 'sftp://' )){
+        	$valid['enable_sftp'] = 'yes';
+        }
+        else {
+	        $valid['enable_sftp'] = sanitize_text_field( '' );
+        }
 
-			$valid['url_newsml'] = sanitize_text_field( '' );
-		}
+	    if ($this->starts_with( $valid['url_newsml'], 'ftps://' )){
+		    $valid['enable_ftps'] = 'yes';
+	    }
+	    else {
+		    $valid['enable_ftps'] = sanitize_text_field( '' );
+	    }
 
-		if ( $valid['enable_ftp'] != 'yes' ) {
+	    if ( $valid['enable_ftp'] != 'yes' ) {
             $valid['ftp_user'] = sanitize_text_field( '' );
             $valid['ftp_pass'] = sanitize_text_field( '' );
             $valid['enable_ftp'] = sanitize_text_field( '' );
+            $valid['enable_sftp'] = sanitize_text_field( '' );
+            $valid['enable_ftps'] = sanitize_text_field( '' );
         }
-
-		if ( $valid['enable_sftp'] != 'yes' ) {
-			//$valid['ftp_user'] = sanitize_text_field( '' );
-			//$valid['ftp_pass'] = sanitize_text_field( '' );
-			$valid['enable_sftp'] = sanitize_text_field( '' );
-		}
 
 		if ( strlen( $valid['expire_time'] ) == 0 || ! ctype_digit( $valid['expire_time'] ) ) {
             add_settings_error(
@@ -942,11 +956,24 @@ class NewsMLG2_Importer_Plugin {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">' . __( 'Access via SFTP:', 'newsml-import' ) . '</th>
+                        <th scope="row">' . __( 'SFTP Private Key Path', 'newsml-import' ) . '</th>
                         <td>
-                            <input type="checkbox"
-                                   name="' . $this->option_name . '[enable_sftp]"
-                                   value="yes" ' . checked( 'yes', $options['enable_sftp'], false ) . '>
+                            <input type="text" name=" ' . $this->option_name . '[sftp_privkey]"
+                                   value="' . $options['sftp_privkey'] . '" size="75">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">' . __( 'SFTP Public Key Path', 'newsml-import' ) . '</th>
+                        <td>
+                            <input type="text" name=" ' . $this->option_name . '[sftp_pubkey]"
+                                   value="' . $options['sftp_pubkey'] . '" size="75">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">' . __( 'SFTP Key username', 'newsml-import' ) . '</th>
+                        <td>
+                            <input type="text" name=" ' . $this->option_name . '[sftp_remoteuser]"
+                                   value="' . $options['sftp_remoteuser'] . '" size="75">
                         </td>
                     </tr>
                     <tr valign="top">
@@ -991,6 +1018,13 @@ class NewsMLG2_Importer_Plugin {
                         <td>
                             <a class="button-primary"
                                href="?page=newsml-list-options&check-delete-posts=true">' . __( 'Delete expired newsposts', 'newsml-import' ) . '</a>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">' . __( 'Clear plugin cache:', 'newsml-import' ) . '</th>
+                        <td>
+                            <a class="button-primary"
+                               href="?page=newsml-list-options&clear-plugin-cache=true">' . __( 'Clear plugin cache', 'newsml-import' ) . '</a>
                         </td>
                     </tr>
                 </table>

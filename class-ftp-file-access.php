@@ -15,6 +15,13 @@ class FTP_File_Access implements Interface_File_Access {
      */
     private $_url = '';
 
+	/**
+	 * Inidicates if this connection is a FTPS connection
+	 *
+	 * @var boolean $_ftps
+	 */
+	private $_ftps = false;
+
     /**
      * The username used to connect to the server.
      *
@@ -52,14 +59,19 @@ class FTP_File_Access implements Interface_File_Access {
      * @param string $url The URL where to find all the XML files.
      * @param string $username The username used to connect, default is empty.
      * @param string $password The password used to connect, default is empty.
+     * @param boolean $ftps Initialize this connections as ftps
      */
-    public function __construct( $url, $username = '', $password = '' ) {
+    public function __construct( $url, $username = '', $password = '', $ftps = false ) {
 
         $temp_url = substr( $url, 6 ); // Remove the ftp:// so users can insert a normal link
+	    if ($temp_url[0] == '/'){ // ftps://
+		    $temp_url = substr($temp_url,1);
+	    }
         $temp_url = substr( $temp_url, 0, -1 ); // Remove the trailing slash
         $this->_url = $temp_url;
         $this->_username = $username;
         $this->_password = $password;
+        $this->_ftps = $ftps;
     }
 
     /**
@@ -69,8 +81,22 @@ class FTP_File_Access implements Interface_File_Access {
      */
     public function establish_connection() {
 
-        // Set the private variables and create ftp connection
-        $this->_connection = ftp_connect( $this->_url );
+	    $host = $this->_url;
+	    $port = 21;
+	    //seperate host and port if url contains a port!
+	    if (strpos($this->_url,":")){
+		    $parts = explode(":",$this->_url);
+		    $host = $parts[0];
+		    $port = $parts[1];
+	    }
+
+	    // Set the private variables and create ftp connection
+	    if ($this->_ftps){
+	    	$this->_connection = ftp_ssl_connect($host, $port);
+	    }
+	    else {
+		    $this->_connection = ftp_connect( $host, $port );
+	    }
 
         $login_result = ftp_login( $this->_connection, $this->_username, $this->_password );
 
