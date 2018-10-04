@@ -113,6 +113,9 @@ class NewsMLG2_Importer_Plugin {
         // Load the textdomain
         add_action( 'plugins_loaded', array( $this, 'load_newsml_textdomain' ) );
 
+        // delete attachments on post-delete
+	    add_action('before_delete_post',array($this, 'delete_attachments_on_post_delete') );
+
         // Add filters for custom view in archive and single page view
         add_filter( 'the_content', array( $this, 'remove_content_from_archive' ) );
         add_filter( 'newsml_include_filter', array( $this, 'show_metadata_on_single_newsml' ) );
@@ -397,6 +400,11 @@ class NewsMLG2_Importer_Plugin {
                         	add_post_meta( $new_post_id, 'newsml_meta_desks', implode(', ', $desks ));
                         }
 
+	                    $slugline = $object->get_slugline();
+	                    if (!empty($slugline)){
+		                    add_post_meta( $new_post_id, 'newsml_meta_slugline', $object->get_slugline() );
+	                    }
+
                         $locs = $object->get_locations();
                         if ( ! empty( $locs ) ) {
                             $locations = array();
@@ -546,6 +554,11 @@ class NewsMLG2_Importer_Plugin {
 		                    add_post_meta( $new_post_id, 'newsml_meta_desks', implode(', ', $desks ));
 	                    }
 
+	                    $slugline = $object->get_slugline();
+	                    if (!empty($slugline)){
+		                    add_post_meta( $new_post_id, 'newsml_meta_slugline', $object->get_slugline() );
+	                    }
+
 	                    $locs = $object->get_locations();
                         if ( ! empty( $locs ) ) {
                             $locations = array();
@@ -631,6 +644,21 @@ class NewsMLG2_Importer_Plugin {
         if ( ! file_exists( $this->_home_path . $result['image_dir'] ) ) {
             mkdir( $this->_home_path . $result['image_dir'], 0755 );
         }
+    }
+
+	/**
+	 * Delete attachments if the post gets deleted!
+	 *
+	 * @author Reinhard Stockinger
+	 */
+    public function delete_attachments_on_post_delete($id){
+	    global $post_type;
+	    if ( $post_type != 'newsml_post' ) return;
+
+	    $attachments = get_attached_media( '', $id );
+	    foreach ($attachments as $attachment) {
+		    wp_delete_attachment( $attachment->ID, 'true' );
+	    }
     }
 
     /**
@@ -1365,7 +1393,9 @@ class NewsMLG2_Importer_Plugin {
             array( $this, 'newsmlpost_location_box_callback' ),
             'newsml_post'
         );
+
     }
+
 
     /**
      * Renders the subtitle box for the newsml_post to the add/edit page.
