@@ -87,7 +87,35 @@ class NewsML_Object {
      */
     private $_multimedia = array();
 
-    /**
+	/**
+	 * The urgency of the news object
+	 *
+	 * @var string $_urgency
+	 */
+	private $_urgency = "";
+
+	/**
+	 * The desks of the news object.
+	 *
+	 * @var array $_multimedia
+	 */
+	private $_desks = array();
+
+	/**
+	 * The source of the news object
+	 *
+	 * @var string $_urgency
+	 */
+	private $_source = "";
+
+	/**
+	 * The slugline of the news object
+	 *
+	 * @var string $_urgency
+	 */
+	private $_slugline = "";
+
+	/**
      * Sets the QCode of the news object to $value.
      *
      * @author Bernhard Punz
@@ -383,6 +411,105 @@ class NewsML_Object {
     public function add_multimedia( $value ) {
         array_push( $this->_multimedia, $value );
     }
+
+	/**
+	 * Sets the urgency of the news object to $value.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param string $value
+	 */
+	public function set_urgency( $value ) {
+		$this->_urgency = $value;
+	}
+
+	/**
+	 * Returns the urgency of the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @return string
+	 */
+	public function get_urgency() {
+		return $this->_urgency;
+	}
+
+	/**
+	 * Sets the desks of the news object to $value.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param array $value
+	 */
+	public function set_desks( $value ) {
+		$this->_desks = $value;
+	}
+
+	/**
+	 * Returns the desks of the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @return array
+	 */
+	public function get_desks() {
+		return $this->_desks;
+	}
+
+	/**
+	 * Adds $value as desk to the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param array $value
+	 */
+	public function add_desk( $value ) {
+		array_push( $this->_desks, $value );
+	}
+
+	/**
+	 * Sets the source of the news object to $value.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param string $value
+	 */
+	public function set_source( $value ) {
+		$this->_source = $value;
+	}
+
+	/**
+	 * Returns the source of the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @return string
+	 */
+	public function get_source() {
+		return $this->_source;
+	}
+
+	/**
+	 * Sets the slugline of the news object to $value.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param string $value
+	 */
+	public function set_slugline( $value ) {
+		$this->_slugline = $value;
+	}
+
+	/**
+	 * Returns the slugline of the news object.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @return string
+	 */
+	public function get_slugline() {
+		return $this->_slugline;
+	}
 
 }
 

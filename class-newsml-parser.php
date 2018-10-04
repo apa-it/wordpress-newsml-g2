@@ -32,7 +32,7 @@ class NewsML_Parser {
         $query = '//tempNS:newsMessage/tempNS:itemSet/tempNS:newsItem/tempNS:itemMeta/tempNS:provider';
         $result = $xpath->query( $query );
 
-        if ( $result->item( 0 )->getAttribute( 'qcode' ) == $this->_provider ) {
+        if ( $result->item( 0 ) != null && $result->item( 0 )->getAttribute( 'qcode' ) == $this->_provider ) {
             return true;
         } else {
             return false;
@@ -61,9 +61,9 @@ class NewsML_Parser {
         $query = '//tempNS:newsMessage/tempNS:itemSet'; // all itemSet
         $result = $xpath->query( $query );
 
-        $guid = $version = $copyrightholder = $copyrightnotice = $timestamp = $content = '';
+        $guid = $version = $copyrightholder = $copyrightnotice = $timestamp = $content = $urgency = $source = $slugline = '';
         $titles = array_fill_keys( array( 'title', 'subtitle' ), '' );
-        $mediatopics = $locations = array();
+        $mediatopics = $locations = $desks = array();
 
         // We loop through all itemSets, those can be a packageItem or newsItem
         foreach ( $result->item( 0 )->childNodes as $child ) { // packageItem, newsItem
@@ -71,8 +71,8 @@ class NewsML_Parser {
             // Now we need to get the itemClass so we can differ between pictures and text
             $var = $child->getElementsByTagName( 'itemClass' )->item( 0 );
 
-            // If it is a picture
-            if ( $var->getAttribute( 'qcode' ) == 'ninat:picture' ) {
+            // If it is a picture or a graphic
+            if ( $var->getAttribute( 'qcode' ) == 'ninat:picture' || $var->getAttribute( 'qcode' ) == 'ninat:graphics' ) {
 
                 // Of course we want all pictures, so we get them all
                 $remote_contents = $child->getElementsByTagName( 'remoteContent' );
@@ -90,6 +90,32 @@ class NewsML_Parser {
 
                     $remote[] = $topic;
                 }
+
+                //Test to import ABD
+	            $textitem = $var->parentNode->parentNode;
+
+	            $doc = new DOMDocument();
+	            $doc->formatOutput = true;
+	            $doc->loadXML( '<root></root>' );
+	            $doc->preserveWhiteSpace = false;
+
+	            $to_import = $doc->importNode( $textitem, true );
+	            $doc->documentElement->appendChild( $to_import );
+
+	            $guid = $this->get_guid_from_newsml( $doc );
+	            $version = $this->get_version_from_newsml( $doc );
+	            $copyrightholder = $this->get_copyrightholder_from_newsml( $doc );
+	            $copyrightnotice = $this->get_copyrightnotice_from_newsml( $doc );
+	            $timestamp = $this->get_datetime_from_newsml( $doc );
+	            $titles = $this->get_titles_from_newsml( $doc );
+	            $mediatopics = $this->get_mediatopics_from_newsml( $doc );
+	            $content = $this->get_content_from_newsml( $doc );
+	            $locations = $this->get_locations_from_newsml( $doc );
+	            $urgency = $this->get_urgency_from_newsml( $doc );
+	            $desks = $this->get_desks_from_newsml( $doc );
+	            $source = $this->get_source_from_newsml( $doc );
+	            $slugline = $this->get_slugline_from_newsml( $doc );
+
 
                 // So it is a text, so we do some stuff and add that stuff to our NewsML_Object
             } elseif ( $var->getAttribute( 'qcode' ) == 'ninat:text' ) {
@@ -115,6 +141,10 @@ class NewsML_Parser {
                 $mediatopics = $this->get_mediatopics_from_newsml( $doc );
                 $content = $this->get_content_from_newsml( $doc );
                 $locations = $this->get_locations_from_newsml( $doc );
+                $urgency = $this->get_urgency_from_newsml( $doc );
+	            $desks = $this->get_desks_from_newsml( $doc );
+	            $source = $this->get_source_from_newsml( $doc );
+	            $slugline = $this->get_slugline_from_newsml( $doc );
             }
         }
 
@@ -128,6 +158,10 @@ class NewsML_Parser {
         $news_object->set_mediatopics( $mediatopics );
         $news_object->set_locations( $locations );
         $news_object->set_content( $content );
+        $news_object->set_urgency($urgency);
+        $news_object->set_desks($desks);
+        $news_object->set_source($source);
+        $news_object->set_slugline($slugline);
 
         return $news_object;
     }
@@ -295,7 +329,56 @@ class NewsML_Parser {
         }
     }
 
-    /**
+	/**
+	 * Gets the urgency from the XML and returns it as XML String.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param DOMDocument $xml The DOM Tree of the file to parse.
+	 *
+	 * @return string The urgency if found, otherwise an empty string.
+	 */
+	public function get_urgency_from_newsml( $xml ) {
+	    $xpath = $this->generate_xpath_on_xml( $xml );
+
+	    $query_urgency = '//tempNS:urgency';
+	    $result_urgency = $xpath->query( $query_urgency );
+
+	    $urgency = $result_urgency->item( 0 )->nodeValue;
+
+	    if ( $urgency != '' ) {
+		    return $urgency;
+	    } else {
+		    return '';
+	    }
+    }
+
+	/**
+	 * Gets the source from the XML and returns it as XML String.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param DOMDocument $xml The DOM Tree of the file to parse.
+	 *
+	 * @return string The urgency if found, otherwise an empty string.
+	 */
+	public function get_source_from_newsml( $xml ) {
+		$xpath = $this->generate_xpath_on_xml( $xml );
+
+		// Get all media topics
+		$query_source = '//tempNS:service[contains(@qcode, "apasvc:")]/tempNS:name';
+		$result_source = $xpath->query( $query_source );
+
+		$source = $result_source->item( 0 )->nodeValue;
+
+	    if ( $source != '' ) {
+		    return $source;
+	    } else {
+		    return '';
+	    }
+	}
+
+	/**
      * Gets all mediatopics of the news message and returns them as an array.
      *
      * @author Bernhard Punz
@@ -324,6 +407,59 @@ class NewsML_Parser {
 
         return $topics;
     }
+
+	/**
+	 * Gets the slugline from the XML and returns it as XML String.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param DOMDocument $xml The DOM Tree of the file to parse.
+	 *
+	 * @return string The uslugline if found, otherwise an empty string.
+	 */
+    public function get_slugline_from_newsml( $xml ) {
+    	$xpath = $this->generate_xpath_on_xml( $xml );
+
+    	$query_slugline = '//tempNS:slugline';
+	    $result_slugline = $xpath->query( $query_slugline );
+
+	    $slugline = $result_slugline->item( 0 )->nodeValue;
+
+	    if ( $slugline != '' ) {
+		    return $slugline;
+	    } else {
+		    return '';
+	    }
+    }
+
+	/**
+	 * Gets all desks of the news message and returns them as an array.
+	 *
+	 * @author Reinhard Stockinger
+	 *
+	 * @param DOMDocument $xml The DOM Tree of the file to parse.
+	 *
+	 * @return array The desks if found, otherwise an empty array.
+	 */
+	public function get_desks_from_newsml( $xml ) {
+
+		$xpath = $this->generate_xpath_on_xml( $xml );
+
+		// Get all media topics
+		$query_desks = '//tempNS:subject[@type="cpnat:abstract" and contains(@qcode, "apadesk:")]';
+		$result_desks = $xpath->query( $query_desks );
+
+		$desks = array();
+
+		foreach ( $result_desks as $desk ) {
+			$deskcode = $desk->getAttribute( 'qcode' );
+			$partarr = explode(":",$deskcode);
+			$deskstr = strtoupper($partarr[1]);
+			$desks[] = $deskstr;
+		}
+
+		return $desks;
+	}
 
     /**
      * Gets all locations of the news message and returns them as an array.
@@ -367,8 +503,10 @@ class NewsML_Parser {
 
         // First extract the body part
         $xml = str_replace( 'default:', '', $xml->saveXML() );
-        preg_match( '/<body>(.*)<\/body>/iUmsu', $xml, $html );
-
+        $preg_ret = preg_match( '/<body>(.*)<\/body>/iUmsu', $xml, $html );
+        if ($preg_ret === FALSE || $preg_ret === 0){ //can't find content or error in preg_match!
+        	return "";
+        }
         // Then load this bodypart into a DOMDocument so we can XPath the elements in it
         $doc = new DOMDocument();
         $doc->loadHTML( mb_convert_encoding( $html[0], 'HTML-ENTITIES', 'UTF-8' ) );

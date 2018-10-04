@@ -24,6 +24,7 @@ require_once( "class-parser-chooser.php" );
 require_once( 'interface-file-access.php' );
 require_once( 'class-http-file-access.php' );
 require_once( 'class-ftp-file-access.php' );
+require_once( 'class-sftp-file-access.php' );
 require_once( 'class-mediatopic-parser.php' );
 require_once( 'class-mediatopic-object.php' );
 require_once( 'class-rss-parser.php' );
@@ -34,6 +35,16 @@ require_once( 'class-rss-parser.php' );
 require_once( ABSPATH . 'wp-admin/includes/media.php' );
 require_once( ABSPATH . 'wp-admin/includes/file.php' );
 require_once( ABSPATH . 'wp-admin/includes/image.php' );
+
+if ( ! function_exists('write_log')) {
+	function write_log ( $log )  {
+		if ( is_array( $log ) || is_object( $log ) ) {
+			error_log( print_r( $log, true ) );
+		} else {
+			error_log( $log );
+		}
+	}
+}
 
 /**
  * Class NewsML_Importer_Plugin
@@ -57,6 +68,11 @@ class NewsMLG2_Importer_Plugin {
     private $data = array(
         'url_newsml' => '',
         'enable_ftp' => 'no',
+        'enable_sftp' => 'no',
+        'enable_ftps' => 'no',
+        'sftp_privkey' => '',
+        'sftp_pubkey' => '',
+        'sftp_remoteuser' => '',
         'ftp_user' => '',
         'ftp_pass' => '',
         'image_dir' => 'wp-content/newsml-images',
@@ -97,6 +113,9 @@ class NewsMLG2_Importer_Plugin {
         // Load the textdomain
         add_action( 'plugins_loaded', array( $this, 'load_newsml_textdomain' ) );
 
+        // delete attachments on post-delete
+	    add_action('before_delete_post',array($this, 'delete_attachments_on_post_delete') );
+
         // Add filters for custom view in archive and single page view
         add_filter( 'the_content', array( $this, 'remove_content_from_archive' ) );
         add_filter( 'newsml_include_filter', array( $this, 'show_metadata_on_single_newsml' ) );
@@ -113,6 +132,10 @@ class NewsMLG2_Importer_Plugin {
         // Add the settings link to the plugin view
         $plugin = plugin_basename( __FILE__ );
         add_filter( "plugin_action_links_$plugin", array( $this, 'plugin_add_settings_link' ) );
+
+	    // This is needed for cron to set the right timezone
+        $mytheme_timezone = get_option('timezone_string');
+	    date_default_timezone_set($mytheme_timezone);
 
     }
 
@@ -178,7 +201,12 @@ class NewsMLG2_Importer_Plugin {
     public function remove_content_from_archive( $template ) {
         global $post;
         $post_types = array( 'newsml_post' );
-        if ( is_post_type_archive( $post_types ) && ! is_single() || count( wp_get_object_terms( $post->ID, 'mediatopic' ) ) > 0 && ! is_single() && ! is_home() ) {
+        $objarr= wp_get_object_terms( $post->ID, 'mediatopic' );
+        $term_cnt=0;
+        if ( is_array($objarr) ){
+        	$term_cnt = count($objarr);
+        }
+        if ( is_post_type_archive( $post_types ) && ! is_single() || $term_cnt > 0 && ! is_single() && ! is_home() ) {
             return "";
         } else {
             return $template;
@@ -219,10 +247,24 @@ class NewsMLG2_Importer_Plugin {
 
         $result = get_option( $this->option_name );
 
-        // Do we want to use FTP or HTTP
-        if ( $result['enable_ftp'] == 'yes' ) {
-            $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'] );
-        } else {
+        // Do we want to use SFTP,FTP or HTTP
+	    if ($result['enable_sftp'] == 'yes') {
+	    	$access = new SFTP_File_Access( $result['url_newsml'],
+			                                $result['ftp_user'],
+			                                $result['ftp_pass'],
+			                                $result['sftp_pubkey'],
+			                                $result['sftp_privkey'],
+			                                $result['sftp_remoteuser']);
+	    }
+        else if ( $result['enable_ftp'] == 'yes' ) {
+	        if ( $result['enable_ftps'] == 'yes'){
+		        $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'], true );
+	        }
+	        else {
+		        $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'] );
+	        }
+        }
+        else {
             $access = new HTTP_File_Access( $result['url_newsml'], '', '' );
         }
 
@@ -261,7 +303,10 @@ class NewsMLG2_Importer_Plugin {
 
         // Load all the files with their associated parser and create a NewsML_Object
         foreach ( $diff as $df ) {
-            $file = $access->open_file( $df );
+        	$file = $access->open_file( $df );
+            if (empty($file)){
+            	continue;
+            }
 
             $xml = new DOMDocument();
             $xml->preserveWhiteSpace = false;
@@ -281,7 +326,6 @@ class NewsMLG2_Importer_Plugin {
 
         // Iterate through our news objects and save them to the database
         foreach ( $news_to_add as $object ) {
-
 
             // If the version of the object is 1, it is a new post that should not be in the database.
             if ( $object->get_version() == '1' ) {
@@ -304,7 +348,7 @@ class NewsMLG2_Importer_Plugin {
                         'post_content' => $object->get_content(),
                         'post_status' => 'publish',
                         'post_date' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
-                        'post_date_gmt' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
+                        'post_date_gmt' => gmdate( 'Y-m-d H:i:s', $object->get_timestamp() ),
                     ) );
 
                     // Just try changing the mediatopics if the post was successfully created
@@ -342,6 +386,25 @@ class NewsMLG2_Importer_Plugin {
                             add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
                         }
 
+                        $urgency = $object->get_urgency();
+                        if ( ! empty( $urgency ) ) {
+	                        add_post_meta( $new_post_id, 'newsml_meta_urgency', $object->get_urgency() );
+                        }
+	                    $urgency = $object->get_source();
+	                    if ( ! empty( $urgency ) ) {
+		                    add_post_meta( $new_post_id, 'newsml_meta_source', $object->get_source() );
+	                    }
+
+                        $desks = $object->get_desks();
+                        if (!empty($desks)){
+                        	add_post_meta( $new_post_id, 'newsml_meta_desks', implode(', ', $desks ));
+                        }
+
+	                    $slugline = $object->get_slugline();
+	                    if (!empty($slugline)){
+		                    add_post_meta( $new_post_id, 'newsml_meta_slugline', $object->get_slugline() );
+	                    }
+
                         $locs = $object->get_locations();
                         if ( ! empty( $locs ) ) {
                             $locations = array();
@@ -354,8 +417,42 @@ class NewsMLG2_Importer_Plugin {
                         $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
 
                         $multis = $object->get_multimedia();
+                        $set_thumbnail=0;
                         foreach ( $multis as $file ) {
-                            $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+                        	if (substr($file['href'],0,4) === 'http'){
+		                        $name = array_slice(explode('/', rtrim($file['href'])),-1)[0];
+		                        if (substr($name,-3) === "jff"){ //replace jff extensions!
+			                        $fileinfo = pathinfo($name);
+			                        $name = $fileinfo['filename'] . ".jpg";
+		                        }
+		                        //check if image or attachment!
+		                        // Set variables for storage, fix file filename for query strings.
+		                        preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', home_url() . '/' . $result['image_dir'] . '/' . $name, $matches );
+		                        if ( ! $matches ) {
+			                        //This is not a image file!
+			                        $tmp = download_url(home_url() . '/' . $result['image_dir'] . '/' . $name);
+			                        $file_array['name'] = $name;
+			                        $file_array['tmp_name'] = $tmp;
+
+			                        $att_id = media_handle_sideload($file_array, $new_post_id, 'attachment for '. $object->get_title());
+			                        if (is_wp_error($att_id)){
+			                        	write_log("Error in media_handle_sideload");
+			                        	write_log($att_id);
+			                        }
+			                        @unlink($file_array['tmp_name']);
+		                        }
+		                        else {
+		                        	// It's a image
+			                        $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $name, $new_post_id, 'image for ' . $object->get_title() ,'id');
+			                        if (!$set_thumbnail && !is_wp_error($image)){ //only set 1st image as arcticleimage
+			                        	$set_thumbnail=1;
+				                        set_post_thumbnail($new_post_id,$image);
+			                        }
+		                        }
+	                        }
+	                        else {
+		                        $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+	                        }
                         }
 
                         add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
@@ -443,7 +540,26 @@ class NewsMLG2_Importer_Plugin {
                             add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
                         }
 
-                        $locs = $object->get_locations();
+	                    $urgency = $object->get_urgency();
+	                    if ( ! empty( $urgency ) ) {
+		                    add_post_meta( $new_post_id, 'newsml_meta_urgency', $object->get_urgency() );
+	                    }
+	                    $urgency = $object->get_source();
+	                    if ( ! empty( $urgency ) ) {
+		                    add_post_meta( $new_post_id, 'newsml_meta_source', $object->get_source() );
+	                    }
+
+	                    $desks = $object->get_desks();
+	                    if (!empty($desks)){
+		                    add_post_meta( $new_post_id, 'newsml_meta_desks', implode(', ', $desks ));
+	                    }
+
+	                    $slugline = $object->get_slugline();
+	                    if (!empty($slugline)){
+		                    add_post_meta( $new_post_id, 'newsml_meta_slugline', $object->get_slugline() );
+	                    }
+
+	                    $locs = $object->get_locations();
                         if ( ! empty( $locs ) ) {
                             $locations = array();
                             foreach ( $locs as $loc ) {
@@ -452,12 +568,54 @@ class NewsMLG2_Importer_Plugin {
                             add_post_meta( $new_post_id, 'newsml_meta_location', implode( ', ', $locations ) );
                         }
 
-                        $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
+                        //$access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
 
-                        $multis = $object->get_multimedia();
-                        foreach ( $multis as $file ) {
-                            $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
-                        }
+                        //$multis = $object->get_multimedia();
+                        //foreach ( $multis as $file ) {
+                        //    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+                        //}
+
+	                    $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
+
+	                    $multis = $object->get_multimedia();
+	                    $set_thumbnail=0;
+	                    foreach ( $multis as $file ) {
+		                    if (substr($file['href'],0,4) === 'http'){
+			                    $name = array_slice(explode('/', rtrim($file['href'])),-1)[0];
+			                    if (substr($name,-3) === "jff"){ //replace jff extensions!
+				                    $fileinfo = pathinfo($name);
+				                    $name = $fileinfo['filename'] . ".jpg";
+			                    }
+			                    //check if image or attachment!
+			                    // Set variables for storage, fix file filename for query strings.
+			                    preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', home_url() . '/' . $result['image_dir'] . '/' . $name, $matches );
+			                    if ( ! $matches ) {
+				                    //This is not a image file!
+				                    $tmp = download_url(home_url() . '/' . $result['image_dir'] . '/' . $name);
+				                    $file_array['name'] = $name;
+				                    $file_array['tmp_name'] = $tmp;
+
+				                    $att_id = media_handle_sideload($file_array, $new_post_id, 'attachment for '. $object->get_title());
+				                    if (is_wp_error($att_id)){
+					                    write_log("Error in media_handle_sideload");
+					                    write_log($att_id);
+				                    }
+				                    @unlink($file_array['tmp_name']);
+			                    }
+			                    else {
+				                    // It's a image
+				                    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $name, $new_post_id, 'image for ' . $object->get_title() ,'id');
+				                    if (!$set_thumbnail && !is_wp_error($image)){ //only set 1st image as arcticleimage
+					                    $set_thumbnail=1;
+					                    set_post_thumbnail($new_post_id,$image);
+				                    }
+			                    }
+		                    }
+		                    else {
+			                    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+		                    }
+	                    }
+
 
                         add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
                         add_post_meta( $new_post_id, 'newsml_meta_version', $object->get_version() );
@@ -486,6 +644,21 @@ class NewsMLG2_Importer_Plugin {
         if ( ! file_exists( $this->_home_path . $result['image_dir'] ) ) {
             mkdir( $this->_home_path . $result['image_dir'], 0755 );
         }
+    }
+
+	/**
+	 * Delete attachments if the post gets deleted!
+	 *
+	 * @author Reinhard Stockinger
+	 */
+    public function delete_attachments_on_post_delete($id){
+	    global $post_type;
+	    if ( $post_type != 'newsml_post' ) return;
+
+	    $attachments = get_attached_media( '', $id );
+	    foreach ($attachments as $attachment) {
+		    wp_delete_attachment( $attachment->ID, 'true' );
+	    }
     }
 
     /**
@@ -532,7 +705,8 @@ class NewsMLG2_Importer_Plugin {
      * @author Bernhard Punz
      */
     public function cron_update_delete() {
-        $this->check_delete_expired_posts();
+    	$this->_home_path = get_home_path();
+    	$this->check_delete_expired_posts();
         $this->insert_news_to_db();
     }
 
@@ -584,6 +758,15 @@ class NewsMLG2_Importer_Plugin {
             exit();
         }
 
+        if ( isset( $_GET['clear-plugin-cache'] ) && $_GET['clear-plugin-cache'] == 'true' ) {
+
+        	//Clear the filelist
+	        update_option( 'newsml-filelist', '' );
+
+	        header( 'Location: options-general.php?page=newsml-list-options' );
+	        exit();
+        }
+
         // If the Import media topics button is clicked
         if ( isset( $_GET['import-mediatopics'] ) && $_GET['import-mediatopics'] == 'true' ) {
 
@@ -632,13 +815,17 @@ class NewsMLG2_Importer_Plugin {
         $valid['image_dir'] = sanitize_text_field( 'wp-content/newsml-images' );
         $valid['expire_time'] = sanitize_text_field( $input['expire_time'] );
 
+        $valid['sftp_privkey'] = sanitize_text_field( $input['sftp_privkey'] );
+	    $valid['sftp_pubkey'] = sanitize_text_field( $input['sftp_pubkey'] );
+	    $valid['sftp_remoteuser'] = sanitize_text_field( $input['sftp_remoteuser'] );
+
         if ( isset( $input['enable_ftp'] ) ) {
             $valid['enable_ftp'] = sanitize_text_field( $input['enable_ftp'] );
         } else {
             $valid['enable_ftp'] = sanitize_text_field( '' );
         }
 
-        if ( isset( $input['use_rss'] ) ) {
+	    if ( isset( $input['use_rss'] ) ) {
             $valid['use_rss'] = sanitize_text_field( $input['use_rss'] );
         } else {
             $valid['use_rss'] = sanitize_text_field( '' );
@@ -665,18 +852,24 @@ class NewsMLG2_Importer_Plugin {
             $valid['url_newsml'] = sanitize_text_field( $this->data['url_newsml'] );
         }
 
-        if ( ! $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] == 'yes' ) {
+        if ( ! $this->starts_with( $valid['url_newsml'], 'ftp://' ) &&
+             ! $this->starts_with( $valid['url_newsml'], 'sftp://' ) &&
+             ! $this->starts_with( $valid['url_newsml'], 'ftps://' ) && $valid['enable_ftp'] == 'yes' ) {
             add_settings_error(
                 'enable_ftp',
                 'enable_ftp_texterror',
-                __( 'Please enter correct URL, starting with ftp://.', 'newsml-import' ),
+                __( 'Please enter correct URL, starting with ftp://, sftp:// or ftps://.', 'newsml-import' ),
                 'error'
             );
 
             $valid['enable_ftp'] = sanitize_text_field( '' );
         }
 
-        if ( $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] != 'yes' ) {
+
+    	if ( ($this->starts_with( $valid['url_newsml'], 'ftp://' ) ||
+	          $this->starts_with( $valid['url_newsml'], 'sftp://' ) ||
+	          $this->starts_with( $valid['url_newsml'], 'ftps://' ) )
+	         && $valid['enable_ftp'] != 'yes' ) {
             add_settings_error(
                 'enable_ftp',
                 'enable_ftp_texterror',
@@ -687,13 +880,29 @@ class NewsMLG2_Importer_Plugin {
             $valid['url_newsml'] = sanitize_text_field( '' );
         }
 
-        if ( $valid['enable_ftp'] != 'yes' ) {
+        if ($this->starts_with( $valid['url_newsml'], 'sftp://' )){
+        	$valid['enable_sftp'] = 'yes';
+        }
+        else {
+	        $valid['enable_sftp'] = sanitize_text_field( '' );
+        }
+
+	    if ($this->starts_with( $valid['url_newsml'], 'ftps://' )){
+		    $valid['enable_ftps'] = 'yes';
+	    }
+	    else {
+		    $valid['enable_ftps'] = sanitize_text_field( '' );
+	    }
+
+	    if ( $valid['enable_ftp'] != 'yes' ) {
             $valid['ftp_user'] = sanitize_text_field( '' );
             $valid['ftp_pass'] = sanitize_text_field( '' );
             $valid['enable_ftp'] = sanitize_text_field( '' );
+            $valid['enable_sftp'] = sanitize_text_field( '' );
+            $valid['enable_ftps'] = sanitize_text_field( '' );
         }
 
-        if ( strlen( $valid['expire_time'] ) == 0 || ! ctype_digit( $valid['expire_time'] ) ) {
+		if ( strlen( $valid['expire_time'] ) == 0 || ! ctype_digit( $valid['expire_time'] ) ) {
             add_settings_error(
                 'newsml_expire_time',
                 'newsmlurl_texterror',
@@ -775,6 +984,27 @@ class NewsMLG2_Importer_Plugin {
                         </td>
                     </tr>
                     <tr valign="top">
+                        <th scope="row">' . __( 'SFTP Private Key Path', 'newsml-import' ) . '</th>
+                        <td>
+                            <input type="text" name=" ' . $this->option_name . '[sftp_privkey]"
+                                   value="' . $options['sftp_privkey'] . '" size="75">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">' . __( 'SFTP Public Key Path', 'newsml-import' ) . '</th>
+                        <td>
+                            <input type="text" name=" ' . $this->option_name . '[sftp_pubkey]"
+                                   value="' . $options['sftp_pubkey'] . '" size="75">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">' . __( 'SFTP Key username', 'newsml-import' ) . '</th>
+                        <td>
+                            <input type="text" name=" ' . $this->option_name . '[sftp_remoteuser]"
+                                   value="' . $options['sftp_remoteuser'] . '" size="75">
+                        </td>
+                    </tr>
+                    <tr valign="top">
                         <th scope="row">' . __( 'Use rss.xml as source:', 'newsml-import' ) . '</th>
                         <td>
                             <input type="checkbox"
@@ -816,6 +1046,13 @@ class NewsMLG2_Importer_Plugin {
                         <td>
                             <a class="button-primary"
                                href="?page=newsml-list-options&check-delete-posts=true">' . __( 'Delete expired newsposts', 'newsml-import' ) . '</a>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">' . __( 'Clear plugin cache:', 'newsml-import' ) . '</th>
+                        <td>
+                            <a class="button-primary"
+                               href="?page=newsml-list-options&clear-plugin-cache=true">' . __( 'Clear plugin cache', 'newsml-import' ) . '</a>
                         </td>
                     </tr>
                 </table>
@@ -912,6 +1149,7 @@ class NewsMLG2_Importer_Plugin {
                 'public' => true,
                 'has_archive' => true,
                 'rewrite' => array( 'slug' => 'news' ),
+	            'supports' => array('title','editor','thumbnail'),
             )
         );
     }
@@ -1155,7 +1393,9 @@ class NewsMLG2_Importer_Plugin {
             array( $this, 'newsmlpost_location_box_callback' ),
             'newsml_post'
         );
+
     }
+
 
     /**
      * Renders the subtitle box for the newsml_post to the add/edit page.
