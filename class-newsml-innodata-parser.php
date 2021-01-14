@@ -182,7 +182,6 @@ class NewsML_Innodata_Parser extends NewsML_Parser
      *
      * @return string The creation time if found, otherwise an empty string.
      * @author Alexander Kucherov
-     *
      */
     public function get_publish_date_from_newsml($xml)
     {
@@ -201,6 +200,13 @@ class NewsML_Innodata_Parser extends NewsML_Parser
         return '';
     }
 
+    /**
+     * Gets the source uri the XML and returns it as XML string.
+     * @param DOMDocument $xml The DOM Tree of the file to parse.
+     *
+     * @return string The source uri if found, otherwise an empty string.
+     * @author Alexander Kucherov
+     */
     public function get_source_uri_from_newsml($xml)
     {
         $xpath = $this->generate_xpath_on_xml($xml);
