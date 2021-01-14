@@ -32,11 +32,13 @@ class NewsML_Parser {
         $query = '//tempNS:newsMessage/tempNS:itemSet/tempNS:newsItem/tempNS:itemMeta/tempNS:provider';
         $result = $xpath->query( $query );
 
-        if ( $result->item( 0 )->getAttribute( 'qcode' ) == $this->_provider ) {
-            return true;
-        } else {
-            return false;
+        if ($item = $result->item( 0 )) {
+            if ( $item->getAttribute( 'qcode' ) == $this->_provider ) {
+                return true;
+            }
         }
+
+        return false;
     }
 
     /**
@@ -72,7 +74,7 @@ class NewsML_Parser {
             $var = $child->getElementsByTagName( 'itemClass' )->item( 0 );
 
             // If it is a picture
-            if ( $var->getAttribute( 'qcode' ) == 'ninat:picture' ) {
+            if ( $var->getAttribute( 'qcode' ) === 'ninat:picture' ) {
 
                 // Of course we want all pictures, so we get them all
                 $remote_contents = $child->getElementsByTagName( 'remoteContent' );
@@ -92,7 +94,7 @@ class NewsML_Parser {
                 }
 
                 // So it is a text, so we do some stuff and add that stuff to our NewsML_Object
-            } elseif ( $var->getAttribute( 'qcode' ) == 'ninat:text' ) {
+            } elseif ( $var->getAttribute( 'qcode' ) === 'ninat:text' ) {
 
                 $textitem = $var->parentNode->parentNode;
 
@@ -148,13 +150,13 @@ class NewsML_Parser {
         $query_guid = '//tempNS:newsItem';
         $result_guid = $xpath->query( $query_guid );
 
-        $guid = $result_guid->item( 0 )->getAttribute( 'guid' );
-
-        if ( $guid != '' ) {
-            return $guid;
-        } else {
-            return '';
+        if ( $item = $result_guid->item( 0 ) ) {
+            if ( $guid = $item->getAttribute( 'guid' ) ) {
+                return $guid;
+            }
         }
+
+        return '';
     }
 
     /**
@@ -173,13 +175,13 @@ class NewsML_Parser {
         $query_version = '//tempNS:newsItem';
         $result_version = $xpath->query( $query_version );
 
-        $version = $result_version->item( 0 )->getAttribute( 'version' );
-
-        if ( $version != '' ) {
-            return $version;
-        } else {
-            return '1';
+        if ( $item = $result_version->item( 0 ) ) {
+            if ( $version = $item->getAttribute( 'version' ) ) {
+                return $version;
+            }
         }
+
+        return '1';
     }
 
     /**
@@ -198,13 +200,13 @@ class NewsML_Parser {
         $query_holder = '//tempNS:rightsInfo/tempNS:copyrightHolder/tempNS:name';
         $result_holder = $xpath->query( $query_holder );
 
-        $holder = $result_holder->item( 0 )->nodeValue;
-
-        if ( $holder != '' ) {
-            return $holder;
-        } else {
-            return '';
+        if ( $item = $result_holder->item( 0 ) ) {
+            if ( $holder = $item->nodeValue ) {
+                return $holder;
+            }
         }
+
+        return '';
     }
 
     /**
@@ -223,13 +225,13 @@ class NewsML_Parser {
         $query_notice = '//tempNS:rightsInfo/tempNS:copyrightNotice';
         $result_notice = $xpath->query( $query_notice );
 
-        $notice = $result_notice->item( 0 )->nodeValue;
-
-        if ( $notice != '' ) {
-            return $notice;
-        } else {
-            return '';
+        if ( $item = $result_notice->item( 0 ) ) {
+            if ( $notice = $item->nodeValue ) {
+                return $notice;
+            }
         }
+
+        return '';
     }
 
     /**
@@ -286,13 +288,13 @@ class NewsML_Parser {
         $result_datetime = $xpath->query( $query_datetime );
 
         // Convert from XML datetime to a unix timestamp
-        $timestamp = strtotime( $result_datetime->item( 0 )->nodeValue );
-
-        if ( $timestamp != '' ) {
-            return $timestamp;
-        } else {
-            return '';
+        if ( $item = $result_datetime->item(0) ) {
+            if ( $timestamp = strtotime($item->nodeValue) ) {
+                return $timestamp;
+            }
         }
+
+        return '';
     }
 
     /**

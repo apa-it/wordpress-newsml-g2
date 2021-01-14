@@ -2,9 +2,9 @@
 /**
  * Plugin Name: NewsML-G2-Importer
  * Plugin URI: http://apa-it.at/
- * Description: Imports NewsML-G2 data (APA, APA-OTS, Kathpress and Thomson Reuters) and inserts them as NewsML Post which is accessible via http://your.blog/news. The access to the NewsML-G2 files is possbile via HTTP and FTP. Every 5 minutes the folder is parsed again and the news get updated. <strong>Warning: </strong> After the activation of the plugin you will be redirected to the settings to configure the plugin.
- * Version: 1.0.2
- * Author: Bernhard Punz
+ * Description: Imports NewsML-G2 data (Innodata, APA, APA-OTS, Kathpress and Thomson Reuters) and inserts them as NewsML Post which is accessible via http://your.blog/news. The access to the NewsML-G2 files is possbile via HTTP and FTP. Every 5 minutes the folder is parsed again and the news get updated. <strong>Warning: </strong> After the activation of the plugin you will be redirected to the settings to configure the plugin.
+ * Version: 1.1.0
+ * Author: Bernhard Punz, Alexander Kucherov
  * Author URI: -
  * License: GPLv2
  * Text Domain: newsml-import
@@ -15,7 +15,7 @@ session_start();
 ini_set( 'max_execution_time', 0 );
 
 // Used for the german translation of the plugin description
-$desc = __( 'Imports NewsML-G2 data (APA, APA-OTS, Kathpress and Thomson Reuters) and inserts them as NewsML Post which is accessible via http://your.blog/news. The access to the NewsML-G2 files is possbile via HTTP and FTP. Every 5 minutes the folder is parsed again and the news get updated. <strong>Warning: </strong> After the activation of the plugin you will be redirected to the settings to configure the plugin.', 'newsml-import' );
+$desc = __( 'Imports NewsML-G2 data (Innodata, APA, APA-OTS, Kathpress and Thomson Reuters) and inserts them as NewsML Post which is accessible via http://your.blog/news. The access to the NewsML-G2 files is possbile via HTTP and FTP. Every 5 minutes the folder is parsed again and the news get updated. <strong>Warning: </strong> After the activation of the plugin you will be redirected to the settings to configure the plugin.', 'newsml-import' );
 
 defined( 'ABSPATH' ) or die( 'Plugin file cannot be accessed directly.' );
 define( 'NEWSML_FILE', __FILE__ );
@@ -60,9 +60,11 @@ class NewsMLG2_Importer_Plugin {
         'ftp_user' => '',
         'ftp_pass' => '',
         'image_dir' => 'wp-content/newsml-images',
-        'expire_time' => '10',
+        'expire_time' => '0',
         'use_rss' => '',
         'news_frontpage' => '',
+        // Disable sync of media topics from http://cv.iptc.org/newscodes.
+        'allow_media_topics' => false,
     );
 
     /**
@@ -106,7 +108,7 @@ class NewsMLG2_Importer_Plugin {
 
         // Wanna show newsml_posts on the frontpage?
         $result = get_option( $this->option_name );
-        if ( $result['news_frontpage'] == 'yes' ) {
+        if ( $result['news_frontpage'] === 'yes' ) {
             add_action( 'pre_get_posts', array( $this, 'add_newsml_on_front_page' ) );
         }
 
@@ -178,11 +180,11 @@ class NewsMLG2_Importer_Plugin {
     public function remove_content_from_archive( $template ) {
         global $post;
         $post_types = array( 'newsml_post' );
-        if ( is_post_type_archive( $post_types ) && ! is_single() || count( wp_get_object_terms( $post->ID, 'mediatopic' ) ) > 0 && ! is_single() && ! is_home() ) {
-            return "";
-        } else {
-            return $template;
+        if ( ( is_post_type_archive( $post_types ) && ! is_single() ) || ( $post && count( wp_get_object_terms( $post->ID, 'mediatopic' ) ) > 0 && ! is_single() && ! is_home() ) ) {
+            return '';
         }
+
+        return $template;
     }
 
     /**
@@ -193,7 +195,7 @@ class NewsMLG2_Importer_Plugin {
     public function show_metadata_on_single_newsml() {
         global $post;
 
-        if ( $post->post_type == 'newsml_post' && is_single() || $post->post_type == 'newsml_post' && is_home()
+        if ( $post->post_type === 'newsml_post' && is_single() || $post->post_type === 'newsml_post' && is_home()
         ) {
             include( ABSPATH . 'wp-content/plugins/newsml-g2-importer/include-metadata.php' );
         }
@@ -209,6 +211,53 @@ class NewsMLG2_Importer_Plugin {
     }
 
     /**
+     * Sets a list of news objects to add.
+     *
+     * @author Alexander Kucherov
+     *
+     * @param $access
+     * @param $diff
+     * @param string $url File path.
+     * @return array Array of news objects.
+     *
+     * @access protected
+     * @since 1.1.0
+     */
+    protected function news_to_add($access, $diff, $url = '') {
+        $news_to_add = array();
+
+        foreach ( $diff as $key => $df ) {
+            if (is_array($df)) {
+                $news_to_add = array_merge($news_to_add, $this->news_to_add($access, $diff[$key], $key));
+            }
+            else {
+                if (($access->type === 'http') && $url) {
+                    $file = $access->open_file( $url . $df, false);
+                } else {
+                    $file = $access->open_file( $df );
+                }
+
+                $xml = new DOMDocument();
+                $xml->preserveWhiteSpace = false;
+                $xml->loadXML( $file );
+
+                $chooser = new Parser_Chooser();
+
+                $parser = $chooser->choose_parser( $xml );
+
+                if ( $parser ) {
+                    $obj = $parser->parse( $xml );
+                    $obj->set_filename( $df );
+                }
+
+                $news_to_add[] = $obj;
+            }
+        }
+
+        return array_filter($news_to_add);
+    }
+
+    /**
      * Inserts the news from the array with NewsML_Objects into the database.
      *
      * @author Bernhard Punz
@@ -220,7 +269,7 @@ class NewsMLG2_Importer_Plugin {
         $result = get_option( $this->option_name );
 
         // Do we want to use FTP or HTTP
-        if ( $result['enable_ftp'] == 'yes' ) {
+        if ( $result['enable_ftp'] === 'yes' ) {
             $access = new FTP_File_Access( $result['url_newsml'], $result['ftp_user'], $result['ftp_pass'] );
         } else {
             $access = new HTTP_File_Access( $result['url_newsml'], '', '' );
@@ -232,246 +281,121 @@ class NewsMLG2_Importer_Plugin {
         $files = get_option( 'newsml-filelist' );
         $files = json_decode( $files );
 
-        if ( $result['use_rss'] == 'yes' ) {
+        if ( $result['use_rss'] === 'yes' ) {
 
             $rss = new RSS_Parser( $access );
 
             // Determine the new files we want to add
-            if ( ! empty( $files ) ) {
+            if ( ! empty( $files ) && $access->type === 'ftp' ) {
                 $diff = array_diff( $rss->file_list(), $files );
             } else {
                 $diff = $rss->file_list();
             }
-
-            $diff = array_values( $diff );
         } else {
             // Determine the new files we want to add
-            if ( ! empty( $files ) ) {
+            if ( ! empty( $files ) && $access->type === 'ftp' ) {
                 $diff = array_diff( $access->file_list(), $files );
             } else {
                 $diff = $access->file_list();
             }
-
-            $diff = array_values( $diff );
         }
 
-        $access->save_files( $diff );
-
-        $news_to_add = array();
+        // No need to save files for http
+        if ($access->type === 'ftp') {
+            $diff = array_values(call_user_func_array('array_merge', $diff) ?: []);
+            $access->save_files( $diff );
+        }
 
         // Load all the files with their associated parser and create a NewsML_Object
-        foreach ( $diff as $df ) {
-            $file = $access->open_file( $df );
-
-            $xml = new DOMDocument();
-            $xml->preserveWhiteSpace = false;
-            $xml->loadXML( $file );
-
-            $chooser = new Parser_Chooser();
-
-            $parser = $chooser->choose_parser( $xml );
-
-            if ( $parser ) {
-                $obj = $parser->parse( $xml );
-                $obj->set_filename( $df );
-            }
-
-            $news_to_add[] = $obj;
-        }
+        $news_to_add = $this->news_to_add($access, $diff);
 
         // Iterate through our news objects and save them to the database
         foreach ( $news_to_add as $object ) {
+            // Delete old post.
+            if ( $post = get_page_by_title($object->get_title(), OBJECT, 'newsml_post')  ) {
+                wp_delete_post( $post->ID, true );
+            }
 
+            $new_post_id = wp_insert_post( array(
+                                               'post_type' => 'newsml_post',
+                                               'post_name' => sanitize_title( $object->get_title() ),
+                                               'post_title' => $object->get_title(),
+                                               'post_content' => $object->get_content(),
+                                               'post_status' => 'publish',
+                                               'post_date' => date( 'Y-m-d H:i:s', $object->get_publish_date() ? $object->get_publish_date() : $object->get_timestamp() ),
+                                               'post_date_gmt' => date( 'Y-m-d H:i:s', $object->get_publish_date() ? $object->get_publish_date() : $object->get_timestamp() ),
+                                           ) );
 
-            // If the version of the object is 1, it is a new post that should not be in the database.
-            if ( $object->get_version() == '1' ) {
+            // Just try changing the mediatopics if the post was successfully created
+            if ( $new_post_id ) {
+                $tax_ids = array();
 
-                $query_check_exists = $wpdb->prepare(
-                    "SELECT m.post_id, m.meta_value, p.post_date FROM $wpdb->postmeta m
-                  LEFT JOIN $wpdb->posts p ON p.ID = m.post_id
-                  WHERE meta_key = 'newsml_meta_guid' AND meta_value =%s",
-                    $object->get_guid()
-                );
+                $mediatopics = $object->get_mediatopics();
+                if ( ! empty( $mediatopics ) ) {
+                    foreach ( $mediatopics as $topic ) {
+                        if (!$this->data['allow_media_topics']) {
+                            if ($term = get_term_by('name', $topic, 'newsml_mediatopic')) {
+                                $tax_ids[] = $term->term_id;
+                            }
 
-                // Check if the post already exists, if not, insert it
-                $res_check_exists = $wpdb->query( $query_check_exists );
+                        } else {
+                            $res_parent = $wpdb->get_row( "SELECT option_name, option_value FROM  $wpdb->options  WHERE option_value LIKE '%s:5:\"qcode\";s:15:\"" . $topic['qcode'] . "%'", ARRAY_A );
 
-                if ( $res_check_exists <= 0 ) {
-                    $new_post_id = wp_insert_post( array(
-                        'post_type' => 'newsml_post',
-                        'post_name' => sanitize_title( $object->get_title() ),
-                        'post_title' => $object->get_title(),
-                        'post_content' => $object->get_content(),
-                        'post_status' => 'publish',
-                        'post_date' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
-                        'post_date_gmt' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
-                    ) );
+                            if ( ! empty( $res_parent ) ) {
+                                // Get the ID of the parent mediatopic that is saved in term_taxonomy
+                                $splitted_taxonomy_meta = explode( '_', $res_parent['option_name'] );
 
-                    // Just try changing the mediatopics if the post was successfully created
-                    if ( $new_post_id ) {
+                                // Get the acutal parent term
+                                $parent_term = get_term( $splitted_taxonomy_meta[2], 'newsml_mediatopic', ARRAY_A );
 
-                        $tax_ids = array();
-
-                        $mediatopics = $object->get_mediatopics();
-                        if ( ! empty( $mediatopics ) ) {
-                            foreach ( $mediatopics as $topic ) {
-
-                                $res_parent = $wpdb->get_row( "SELECT option_name, option_value FROM  $wpdb->options  WHERE option_value LIKE '%s:5:\"qcode\";s:15:\"" . $topic['qcode'] . "%'", ARRAY_A );
-
-                                if ( ! empty( $res_parent ) ) {
-                                    // Get the ID of the parent mediatopic that is saved in term_taxonomy
-                                    $splitted_taxonomy_meta = explode( '_', $res_parent['option_name'] );
-
-                                    // Get the acutal parent term
-                                    $parent_term = get_term( $splitted_taxonomy_meta[2], 'newsml_mediatopic', ARRAY_A );
-
-                                    // Update the child mediatopic, now with the correct parent ID
-                                    $tax_ids[] = $parent_term['term_id'];
-                                }
+                                // Update the child mediatopic, now with the correct parent ID
+                                $tax_ids[] = $parent_term['term_id'];
                             }
                         }
-
-                        $tax_ids = array_map( 'intval', $tax_ids );
-                        $tax_ids = array_unique( $tax_ids );
-
-                        $term_tax_ids = wp_set_object_terms( $new_post_id, $tax_ids, 'newsml_mediatopic' );
-
-                        // Insert different post meta
-                        $subtitle = $object->get_subtitle();
-                        if ( ! empty( $subtitle ) ) {
-                            add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
-                        }
-
-                        $locs = $object->get_locations();
-                        if ( ! empty( $locs ) ) {
-                            $locations = array();
-                            foreach ( $locs as $loc ) {
-                                $locations[] = $loc['name'];
-                            }
-                            add_post_meta( $new_post_id, 'newsml_meta_location', implode( ', ', $locations ) );
-                        }
-
-                        $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
-
-                        $multis = $object->get_multimedia();
-                        foreach ( $multis as $file ) {
-                            $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
-                        }
-
-                        add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
-                        add_post_meta( $new_post_id, 'newsml_meta_version', $object->get_version() );
-                        add_post_meta( $new_post_id, 'newsml_meta_deprecated', 'no' );
-                        add_post_meta( $new_post_id, 'newsml_meta_copyrightholder', $object->get_copyrightholder() );
-                        add_post_meta( $new_post_id, 'newsml_meta_copyrightnotice', $object->get_copyrightnotice() );
-
-                        // Add to filelist
-                        $files[] = $object->get_filename();
-
-                    } elseif ( is_wp_error( $new_post_id ) ) {
-                        $error_string = $new_post_id->get_error_message();
-                    }
-                } else {
-                    /*
-                     * Somehow we came here, but we should not be here. So the version was 1 but there was already a post with the same guid.
-                     * So the author did something wrong, not my fault!
-                    */
-                }
-            } else {
-                // UPDATE
-                // The version is greather than 1, so it is an update for some older post.
-                $query_check_exists = $wpdb->prepare(
-                    "SELECT m.post_id, m.meta_value, p.post_date FROM $wpdb->postmeta m
-                  LEFT JOIN $wpdb->posts p ON p.ID = m.post_id
-                  WHERE meta_key = 'newsml_meta_guid' AND meta_value =%s
-                  ORDER BY m.meta_id DESC LIMIT 1",
-                    $object->get_guid()
-                );
-
-                // Check if the post already exists, if yes, set the old one to deprecated and insert the new one.
-                $res_check_exists = $wpdb->query( $query_check_exists );
-
-                // The post already exists, so we want to update it.
-                if ( $res_check_exists > 0 ) {
-                    $row = $wpdb->get_row( $query_check_exists, ARRAY_A );
-
-                    // Set the old post to deprecated
-                    update_post_meta( $row['post_id'], 'newsml_meta_deprecated', 'yes' );
-
-                    // Insert the new and updated post
-                    $new_post_id = wp_insert_post( array(
-                        'post_type' => 'newsml_post',
-                        'post_name' => sanitize_title( $object->get_title() ),
-                        'post_title' => $object->get_title(),
-                        'post_content' => $object->get_content(),
-                        'post_status' => 'publish',
-                        'post_date' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
-                        'post_date_gmt' => date( 'Y-m-d H:i:s', $object->get_timestamp() ),
-                    ) );
-
-                    // Just try changing the mediatopics if the post was successfully created
-                    if ( $new_post_id ) {
-
-                        $tax_ids = array();
-
-                        $mediatopics = $object->get_mediatopics();
-                        if ( ! empty( $mediatopics ) ) {
-                            foreach ( $mediatopics as $topic ) {
-
-                                $res_parent = $wpdb->get_row( "SELECT option_name, option_value FROM  $wpdb->options  WHERE option_value LIKE '%s:5:\"qcode\";s:15:\"" . $topic['qcode'] . "%'", ARRAY_A );
-
-                                if ( ! empty( $res_parent ) ) {
-                                    // Get the ID of the parent mediatopic that is saved in term_taxonomy
-                                    $splitted_taxonomy_meta = explode( '_', $res_parent['option_name'] );
-
-                                    // Get the acutal parent term
-                                    $parent_term = get_term( $splitted_taxonomy_meta[2], 'newsml_mediatopic', ARRAY_A );
-
-                                    // Update the child mediatopic, now with the correct parent ID
-                                    $tax_ids[] = $parent_term['term_id'];
-                                }
-                            }
-                        }
-
-                        $tax_ids = array_map( 'intval', $tax_ids );
-                        $tax_ids = array_unique( $tax_ids );
-
-                        $term_tax_ids = wp_set_object_terms( $new_post_id, $tax_ids, 'newsml_mediatopic' );
-
-                        // Insert different post meta
-                        $subtitle = $object->get_subtitle();
-                        if ( ! empty( $subtitle ) ) {
-                            add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
-                        }
-
-                        $locs = $object->get_locations();
-                        if ( ! empty( $locs ) ) {
-                            $locations = array();
-                            foreach ( $locs as $loc ) {
-                                $locations[] = $loc['name'];
-                            }
-                            add_post_meta( $new_post_id, 'newsml_meta_location', implode( ', ', $locations ) );
-                        }
-
-                        $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
-
-                        $multis = $object->get_multimedia();
-                        foreach ( $multis as $file ) {
-                            $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
-                        }
-
-                        add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
-                        add_post_meta( $new_post_id, 'newsml_meta_version', $object->get_version() );
-                        add_post_meta( $new_post_id, 'newsml_meta_deprecated', 'no' );
-                        add_post_meta( $new_post_id, 'newsml_meta_copyrightholder', $object->get_copyrightholder() );
-                        add_post_meta( $new_post_id, 'newsml_meta_copyrightnotice', $object->get_copyrightnotice() );
-
-                        // Add to filelist
-                        $files[] = $object->get_filename();
-
-                    } elseif ( is_wp_error( $new_post_id ) ) {
-                        $error_string = $new_post_id->get_error_message();
                     }
                 }
+
+                $tax_ids = array_map( 'intval', $tax_ids );
+                $tax_ids = array_unique( $tax_ids );
+
+                $term_tax_ids = wp_set_object_terms( $new_post_id, $tax_ids, 'newsml_mediatopic' );
+
+                // Insert different post meta
+                $subtitle = $object->get_subtitle();
+                if ( ! empty( $subtitle ) ) {
+                    add_post_meta( $new_post_id, 'newsml_meta_subtitle', $object->get_subtitle() );
+                }
+
+                $locs = $object->get_locations();
+                if ( ! empty( $locs ) ) {
+                    $locations = array();
+                    foreach ( $locs as $loc ) {
+                        $locations[] = $loc['name'];
+                    }
+                    add_post_meta( $new_post_id, 'newsml_meta_location', implode( ', ', $locations ) );
+                }
+
+                $access->save_media_files( $this->_home_path . $result['image_dir'], $object->get_multimedia() );
+
+                $multis = $object->get_multimedia();
+                foreach ( $multis as $file ) {
+                    $image = media_sideload_image( home_url() . '/' . $result['image_dir'] . '/' . $file['href'], $new_post_id, 'image for ' . $object->get_title() );
+                }
+
+                add_post_meta( $new_post_id, 'newsml_meta_guid', $object->get_guid() );
+                add_post_meta( $new_post_id, 'newsml_meta_version', $object->get_version() );
+                add_post_meta( $new_post_id, 'newsml_meta_deprecated', 'no' );
+                add_post_meta( $new_post_id, 'newsml_meta_copyrightholder', $object->get_copyrightholder() );
+                add_post_meta( $new_post_id, 'newsml_meta_copyrightnotice', $object->get_copyrightnotice() );
+                add_post_meta( $new_post_id, 'newsml_meta_published', $object->get_publish_date() );
+                add_post_meta( $new_post_id, 'newsml_meta_created', $object->get_timestamp() );
+                add_post_meta( $new_post_id, 'newsml_meta_source', $object->get_source_uri() );
+
+                // Add to filelist
+                $files[] = $object->get_filename();
+
+            } elseif ( is_wp_error( $new_post_id ) ) {
+                $error_string = $new_post_id->get_error_message();
             }
         }
 
@@ -554,7 +478,7 @@ class NewsMLG2_Importer_Plugin {
         register_setting( 'newsml-list-options', $this->option_name, array( $this, 'validate_inputs' ) );
 
         // If the Update news button is clicked
-        if ( isset( $_GET['update-posts'] ) && $_GET['update-posts'] == 'true' ) {
+        if ( isset( $_GET['update-posts'] ) && $_GET['update-posts'] === 'true' ) {
 
             $this->insert_news_to_db();
 
@@ -567,16 +491,16 @@ class NewsMLG2_Importer_Plugin {
         }
 
         // Show the message that the newsposts got updated
-        if ( $GLOBALS['pagenow'] == 'options-general.php' && isset( $_GET['page'] ) && $_GET['page'] == 'newsml-list-options' ) {
+        if ( $GLOBALS['pagenow'] === 'options-general.php' && isset( $_GET['page'] ) && $_GET['page'] === 'newsml-list-options' ) {
 
-            if ( isset( $_SESSION['posts_got_updated'] ) && $_SESSION['posts_got_updated'] == 'true' ) {
+            if ( isset( $_SESSION['posts_got_updated'] ) && $_SESSION['posts_got_updated'] === 'true' ) {
                 echo '<div class="updated"><p>' . __( 'Updated newsposts', 'newsml-import' ) . '</p></div>';
                 $_SESSION['posts_got_updated'] = '';
             }
         }
 
         // If the Check posts to delete button is clicked
-        if ( isset( $_GET['check-delete-posts'] ) && $_GET['check-delete-posts'] == 'true' ) {
+        if ( isset( $_GET['check-delete-posts'] ) && $_GET['check-delete-posts'] === 'true' ) {
 
             $this->check_delete_expired_posts();
 
@@ -585,11 +509,11 @@ class NewsMLG2_Importer_Plugin {
         }
 
         // If the Import media topics button is clicked
-        if ( isset( $_GET['import-mediatopics'] ) && $_GET['import-mediatopics'] == 'true' ) {
+        if ( isset( $_GET['import-mediatopics'] ) && $_GET['import-mediatopics'] === 'true' ) {
 
             $run_once = get_option( 'newsml-import_medtop_run_once' );
 
-            if ( $run_once != 'yes' ) {
+            if ( $run_once !== 'yes' && $this->data['allow_media_topics']) {
 
                 // Insert the media topics from the xml file
                 $this->insert_mediatopics();
@@ -607,9 +531,9 @@ class NewsMLG2_Importer_Plugin {
         }
 
         // Show the message that the media topics got imported
-        if ( $GLOBALS['pagenow'] == 'options-general.php' && isset( $_GET['page'] ) && $_GET['page'] == 'newsml-list-options' ) {
+        if ( $GLOBALS['pagenow'] === 'options-general.php' && isset( $_GET['page'] ) && $_GET['page'] === 'newsml-list-options') {
 
-            if ( isset( $_SESSION['mediatopics_got_imported'] ) && $_SESSION['mediatopics_got_imported'] == 'true' ) {
+            if ( isset( $_SESSION['mediatopics_got_imported'] ) && $_SESSION['mediatopics_got_imported'] === 'true' ) {
                 echo '<div class="updated"><p>' . __( 'Imported mediatopics', 'newsml-import' ) . '</p></div>';
                 $_SESSION['mediatopics_got_imported'] = '';
             }
@@ -665,7 +589,7 @@ class NewsMLG2_Importer_Plugin {
             $valid['url_newsml'] = sanitize_text_field( $this->data['url_newsml'] );
         }
 
-        if ( ! $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] == 'yes' ) {
+        if ( ! $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] === 'yes' ) {
             add_settings_error(
                 'enable_ftp',
                 'enable_ftp_texterror',
@@ -676,7 +600,7 @@ class NewsMLG2_Importer_Plugin {
             $valid['enable_ftp'] = sanitize_text_field( '' );
         }
 
-        if ( $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] != 'yes' ) {
+        if ( $this->starts_with( $valid['url_newsml'], 'ftp://' ) && $valid['enable_ftp'] !== 'yes' ) {
             add_settings_error(
                 'enable_ftp',
                 'enable_ftp_texterror',
@@ -687,7 +611,7 @@ class NewsMLG2_Importer_Plugin {
             $valid['url_newsml'] = sanitize_text_field( '' );
         }
 
-        if ( $valid['enable_ftp'] != 'yes' ) {
+        if ( $valid['enable_ftp'] !== 'yes' ) {
             $valid['ftp_user'] = sanitize_text_field( '' );
             $valid['ftp_pass'] = sanitize_text_field( '' );
             $valid['enable_ftp'] = sanitize_text_field( '' );
@@ -1220,7 +1144,7 @@ class NewsMLG2_Importer_Plugin {
             return $post_id;
 
         // Check the user's permissions.
-        if ( 'newsml_post' == sanitize_text_field( $_POST['post_type'] ) ) {
+        if ( 'newsml_post' === sanitize_text_field( $_POST['post_type'] ) ) {
 
             if ( ! current_user_can( 'edit_page', $post_id ) )
                 return $post_id;

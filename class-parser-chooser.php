@@ -3,6 +3,7 @@
 require_once( 'class-newsml-parser.php' );
 require_once( 'class-newsml-kap-parser.php' );
 require_once( 'class-newsml-reuters-parser.php' );
+require_once( 'class-newsml-innodata-parser.php' );
 
 /**
  * Class Parser_Chooser
@@ -15,6 +16,7 @@ class Parser_Chooser {
      */
     private $_parser_list = array(
         'NewsML_Parser',
+        'NewsML_Innodata_Parser',
         'NewsML_KAP_Parser',
         'NewsML_Reuters_Parser',
     );

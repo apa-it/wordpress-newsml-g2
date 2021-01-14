@@ -14,6 +14,12 @@ class HTTP_File_Access implements Interface_File_Access {
     private $_url = '';
 
     /**
+     * FileAccess type.
+     * @var string $type
+     */
+    public $type = 'http';
+
+    /**
      * Takes the passed arguments and sets $url, $username and $password, needed for the connection.
      * In HTTP $username and $password is empty because it is not needed.
      *
@@ -59,13 +65,12 @@ class HTTP_File_Access implements Interface_File_Access {
         $count = preg_match_all( '/<a href="[^"]+">(?:(?!Name|Last modified|Size|Description).)[^<]*<\/a>/i', $temp_list, $files );
 
         $files = array_reverse( $files[0] );
+        $files_count = count( $files );
 
         $read_entries = array();
 
-        array_pop( $files ); // Remove the ../ link
-
         // Just loop through all files in the list
-        for ( $k = 0; $k < count( $files ); $k++ ) {
+        for ( $k = 0; $k < $files_count; $k++ ) {
 
             // Get the acutal link/filename as array (that's what preg_match_all does)
             $matche_res = preg_match_all( '/<a href="([^"]+)">[^<]*<\/a>/i', $files[$k], $temp_arr );
@@ -73,13 +78,21 @@ class HTTP_File_Access implements Interface_File_Access {
             // Our actual filename
             $file = $temp_arr[1][0];
 
+            // Sub-dir
+            if (substr($file, -1) === '/') {
+                $sub_dir = new SimpleXMLElement($files[$k]);
+                $read_entries[$this->_url . $sub_dir['href']] = $this->file_list($this->_url . $sub_dir['href']);
+            }
+
             $parts = explode( '.', $file );
-            if ( strtolower( $parts[1] ) == 'xml' && strtolower( $parts[0] ) != 'rss' ) { // Just add XML files to our array
-                $read_entries[] = $temp_arr[1][0];
+            if (count($parts) > 1) {
+                if ( strtolower( $parts[1] ) === 'xml' && strtolower( $parts[0] ) !== 'rss' ) { // Just add XML files to our array
+                    $read_entries[] = $temp_arr[1][0];
+                }
             }
         }
 
-        return array_reverse( $read_entries );
+        return array_reverse( $read_entries, true );
     }
 
     /**
