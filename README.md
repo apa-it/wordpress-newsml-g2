@@ -3,7 +3,7 @@
 Imports NewsML-G2 data and makes them accessible from your Wordpress installation.  
 
 Requires at least: 4.1.1  
-Tested up to: 4.2.2  
+Tested up to: 5.6  
 License: GPLv2  
 
 ## Official wordpress.org downloadlink
@@ -47,6 +47,9 @@ Contact me!
 ### 1.0 
 * Initial release
 
+### 1.1.0
+* Added Innodata parser
+* Recursive check for http access
 
 ## Upgrade Notice
 

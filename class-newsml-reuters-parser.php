@@ -28,11 +28,13 @@ class NewsML_Reuters_Parser extends NewsML_Parser {
         $query = '//tempNS:newsMessage/tempNS:itemSet/tempNS:newsItem/tempNS:itemMeta/tempNS:provider';
         $result = $xpath->query( $query );
 
-        if ( $result->item( 0 )->getAttribute( 'literal' ) == $this->_provider ) {
-            return true;
-        } else {
-            return false;
+        if ($item = $result->item( 0 )) {
+            if ( $item->getAttribute( 'literal' ) == $this->_provider ) {
+                return true;
+            }
         }
+
+        return false;
     }
 
     /**

@@ -10,7 +10,7 @@ class NewsML_Object {
      *
      * @var string $_guid
      */
-    private $_guid = "";
+    private $_guid = '';
 
     /**
      * The creation time of the news object.
@@ -23,27 +23,27 @@ class NewsML_Object {
      * The filename of the news object.
      * @var string $_filename
      */
-    private $_filename = "";
+    private $_filename = '';
 
     /**
      * The version of the news object.
      * @var string $_version
      */
-    private $_version = "";
+    private $_version = '';
 
     /**
      * The copyrightholder of the news object.
      *
      * @var string $_copyrightholder
      */
-    private $_copyrightholder = "";
+    private $_copyrightholder = '';
 
     /**
      * The copyrightnotice of the news object.
      *
      * @var string $_copyrightnotice
      */
-    private $_copyrightnotice = "";
+    private $_copyrightnotice = '';
 
     /**
      * The title of the news object.
@@ -57,7 +57,7 @@ class NewsML_Object {
      *
      * @var string $_subtitle
      */
-    private $_subtitle = "";
+    private $_subtitle = '';
 
     /**
      * The news objects of the news object.
@@ -78,7 +78,7 @@ class NewsML_Object {
      *
      * @var string $_content
      */
-    private $_content = "";
+    private $_content = '';
 
     /**
      * The multimedia files of the news object.
@@ -86,6 +86,28 @@ class NewsML_Object {
      * @var array $_multimedia
      */
     private $_multimedia = array();
+
+    /**
+     * Item publish date.
+     *
+     * @author Alexander Kucherov
+     *
+     * @var int $_publish_date
+     * @since 1.1.0
+     * @access private
+     */
+    private $_publish_date = 0;
+
+    /**
+     * Item source uri.
+     *
+     * @author Alexander Kucherov
+     *
+     * @var string $_publish_date
+     * @since 1.1.0
+     * @access private
+     */
+    private $_source_uri = '';
 
     /**
      * Sets the QCode of the news object to $value.
@@ -382,6 +404,54 @@ class NewsML_Object {
      */
     public function add_multimedia( $value ) {
         array_push( $this->_multimedia, $value );
+    }
+
+    /**
+     * Returns publish date of the news object.
+     *
+     * @author Alexander Kucherov
+     *
+     * @return int
+     * @since 1.1.0
+     */
+    public function get_publish_date() {
+        return $this->_publish_date;
+    }
+
+    /**
+     * Sets the publish date of the news object to $value.
+     *
+     * @author Alexander Kucherov
+     *
+     * @param int $value
+     * @since 1.1.0
+     */
+    public function set_publish_date( $value ) {
+        $this->_publish_date = $value;
+    }
+
+    /**
+     * Returns source uri of the news object.
+     *
+     * @author Alexander Kucherov
+     *
+     * @return string
+     * @since 1.1.0
+     */
+    public function get_source_uri() {
+        return $this->_source_uri;
+    }
+
+    /**
+     * Sets the source uri of the news object to $value.
+     *
+     * @author Alexander Kucherov
+     *
+     * @param string $value
+     * @since 1.1.0
+     */
+    public function set_source_uri( $value ) {
+        $this->_source_uri = $value;
     }
 
 }

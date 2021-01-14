@@ -43,6 +43,12 @@ class FTP_File_Access implements Interface_File_Access {
      */
     private $_temp_folder = '/temp/';
 
+    /**
+     * FileAccess type.
+     * @var string $type
+     */
+    public $type = 'ftp';
+
 
     /**
      * Takes the passed arguments and sets $url, $username and $password, needed for the connection.
@@ -78,9 +84,9 @@ class FTP_File_Access implements Interface_File_Access {
 
         if ( ( ! $this->_connection ) || ( ! $login_result ) ) {
             die( 'Error while connecting to FTP server.' );
-        } else {
-            ftp_chdir( $this->_connection, 'apa_ots' ); // Just now needed because our files are in the folder apa_ots and you can not directly connect to a subfolder with FTP
         }
+
+        ftp_chdir( $this->_connection, 'apa_ots' ); // Just now needed because our files are in the folder apa_ots and you can not directly connect to a subfolder with FTP
     }
 
     /**
@@ -101,12 +107,12 @@ class FTP_File_Access implements Interface_File_Access {
             $splitted = explode( ' ', preg_replace( '/\s+/', ' ', $extracted ) ); // First remove multiple whitespaces, then split
 
             $tmp_file = explode( '.', $splitted[8] );
-            if ( strtolower( $tmp_file[1] ) == 'xml' && strtolower( $tmp_file[0] ) != 'rss' ) {
+            if ( strtolower( $tmp_file[1] ) === 'xml' && strtolower( $tmp_file[0] ) !== 'rss' ) {
                 $final_items[] = $splitted[8];
             }
         }
 
-        return array_reverse( $final_items );
+        return array_reverse( $final_items, true );
     }
 
     /**
