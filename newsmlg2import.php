@@ -151,6 +151,7 @@ class NewsMLG2_Importer_Plugin {
             );
             $query->set( 'meta_query', $meta_query );
         }
+
         return $query;
     }
 
@@ -164,8 +165,10 @@ class NewsMLG2_Importer_Plugin {
      * @return mixed
      */
     public function add_newsml_on_front_page( $query ) {
-        if ( is_home() && $query->is_main_query() )
+        if ( is_home() && $query->is_main_query() ) {
             $query->set( 'post_type', array( 'post', 'newsml_post' ) );
+        }
+
         return $query;
     }
 
@@ -179,9 +182,13 @@ class NewsMLG2_Importer_Plugin {
      */
     public function remove_content_from_archive( $template ) {
         global $post;
-        $post_types = array( 'newsml_post' );
-        if ( ( is_post_type_archive( $post_types ) && ! is_single() ) || ( $post && count( wp_get_object_terms( $post->ID, 'mediatopic' ) ) > 0 && ! is_single() && ! is_home() ) ) {
-            return '';
+
+        if ( $post ) {
+            $post_types = array( 'newsml_post' );
+            $topics = is_array( wp_get_object_terms( $post->ID, 'mediatopic' ) ) ? wp_get_object_terms( $post->ID, 'mediatopic' ) : array();
+            if ( ( is_post_type_archive( $post_types ) && ! is_single() ) || ( $post && count( $topics ) > 0 && ! is_single() && ! is_home() ) ) {
+                return '';
+            }
         }
 
         return $template;
@@ -195,9 +202,10 @@ class NewsMLG2_Importer_Plugin {
     public function show_metadata_on_single_newsml() {
         global $post;
 
-        if ( $post->post_type === 'newsml_post' && is_single() || $post->post_type === 'newsml_post' && is_home()
-        ) {
-            include( ABSPATH . 'wp-content/plugins/newsml-g2-importer/include-metadata.php' );
+        if ( $post ) {
+            if ( $post->post_type === 'newsml_post' && ( is_single() || is_home() ) ) {
+                include( ABSPATH . 'wp-content/plugins/newsml-g2-importer/include-metadata.php' );
+            }
         }
     }
 
