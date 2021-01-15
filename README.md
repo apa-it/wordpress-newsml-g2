@@ -51,6 +51,9 @@ Contact me!
 * Added Innodata parser
 * Recursive check for http access
 
+### 1.1.1
+* PHP error fixes
+
 ## Upgrade Notice
 
 ### 1.0 
