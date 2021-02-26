@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<ruleset name="NewsML_G2">
+    <description>NewsML_G2 rules for PHP CodeSniffer</description>
+
+    <!-- Run against the WordPress ruleset -->
+    <rule ref="WordPress"/>
+
+    <!-- Run against a PSR12 ruleset -->
+    <rule ref="PSR12"/>
+
+    <!-- Run against a PHPCompatibility ruleset -->
+    <rule ref="PHPCompatibility"/>
+    <config name="testVersion" value="7.4-"/>
+
+    <arg name="extensions" value="php"/>
+    <arg value="s"/>
+
+    <!-- Excludes list -->
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>.github/</exclude-pattern>
+</ruleset>

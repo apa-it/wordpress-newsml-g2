@@ -73,6 +73,8 @@ Contact me!
 * Updated logic for newsnls to update
 ### 1.2.6
 * Added autoloader support
+### 1.2.7
+* Added phpcs && gh actions check
 
 ## Upgrade Notice
 

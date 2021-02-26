@@ -2,8 +2,8 @@
 Contributors: BernhardPunz, ced99, mephinet, avdkucherov
 Tags: NewsML-G2, import, APA, IPTC
 Requires at least: 5.0
-Tested up to: 5.6
-Stable tag: 1.2.6
+Tested up to: 5.6.2
+Stable tag: 1.2.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -87,6 +87,9 @@ Contact me!
 
 = 1.2.6 =
 * Added autoloader support
+
+= 1.2.7 =
+* Added phpcs && gh actions check
 
 == Upgrade Notice ==
 
