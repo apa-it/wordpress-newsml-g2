@@ -1,9 +1,9 @@
 === NewsML-G2 Importer ===
 Contributors: BernhardPunz, ced99, mephinet, avdkucherov
 Tags: NewsML-G2, import, APA, IPTC
-Requires at least: 4.1.1
+Requires at least: 5.0
 Tested up to: 5.6
-Stable tag: 1.1.1
+Stable tag: 1.2.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,30 @@ Contact me!
 
 = 1.1.1 =
 * PHP error fixes
+
+= 1.2.0 =
+* SFTP support
+* .zip support for FTP/SFTP
+
+= 1.2.1 =
+* Publish posts option
+
+= 1.2.2 =
+* Updated Innodata parser mapping & better new_post handling
+
+= 1.2.3 =
+* Updated Innodata parser mapping
+
+= 1.2.4 =
+* Updated Innodata parser mapping
+* Fixed notices on newsml_post update
+
+= 1.2.5 =
+* Updated Innodata parser mapping
+* Updated logic for newsnls to update
+
+= 1.2.6 =
+* Added autoloader support
 
 == Upgrade Notice ==
 

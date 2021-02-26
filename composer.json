@@ -1,0 +1,20 @@
+{
+    "name": "cra/wordpress-newsml-g2",
+    "description": "Imports NewsML-G2 data and makes them accessible from your Wordpress installation",
+    "type": "library",
+    "require": {
+        "phpseclib/phpseclib": "^3.0.3"
+    },
+    "authors": [
+        {
+            "name": "Alexander Kucherov",
+            "email": "avdkucherov@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "NewsML_G2\\Plugin\\": "includes"
+        }
+    },
+    "license": "proprietary"
+}

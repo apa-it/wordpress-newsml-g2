@@ -2,9 +2,10 @@
 
 Imports NewsML-G2 data and makes them accessible from your Wordpress installation.  
 
-Requires at least: 4.1.1  
-Tested up to: 5.6  
-License: GPLv2  
+* Requires at least: 5.0  
+* PHP: 7.3 
+* Tested up to: 5.6  
+* License: GPLv2  
 
 ## Official wordpress.org downloadlink
 https://wordpress.org/plugins/newsml-g2-importer/  
@@ -53,6 +54,25 @@ Contact me!
 
 ### 1.1.1
 * PHP error fixes
+
+### 1.2.0
+* SFTP support
+* .zip support for FTP/SFTP
+
+### 1.2.1
+* Publish posts option
+### 1.2.2
+* Updated Innodata parser mapping & better new_post handling
+### 1.2.3
+* Updated Innodata parser mapping
+### 1.2.4
+* Updated Innodata parser mapping
+* Fixed notices on newsml_post update
+### 1.2.5
+* Updated Innodata parser mapping
+* Updated logic for newsnls to update
+### 1.2.6
+* Added autoloader support
 
 ## Upgrade Notice
 
